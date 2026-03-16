@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { BASE_URL } from '../_common/api/config';
+import { apiFetch } from '../_common/api/client';
 import styles from './settings.module.scss';
 import {
   FiServer,
@@ -11,6 +12,10 @@ import {
   FiRefreshCw,
   FiLink,
   FiZap,
+  FiPlus,
+  FiTrash2,
+  FiCheck,
+  FiAlertCircle,
 } from 'react-icons/fi';
 
 interface HealthData {
@@ -30,13 +35,40 @@ interface McpServer {
   tools_count: number;
 }
 
+const TOOL_CATEGORIES: Record<string, (name: string) => boolean> = {
+  'xgen-core DB': (n) => n.startsWith('core_db'),
+  'xgen-core Config': (n) => n.startsWith('core_config') || n.startsWith('core_auth'),
+  'xgen-documents': (n) => /^(rag_|embedding_|rerank_|document_)/.test(n),
+  'Agent 관리': (n) => /^(create_agent|list_agents|get_agent|update_agent|delete_agent|list_available_tools)$/.test(n),
+  'Sandbox': (n) => n.startsWith('execute_code'),
+  'Utility': (n) => /^(send_email|read_table_data|write_table_data|ml_inference|run_workflow)$/.test(n),
+};
+
+function categorize(tools: ToolInfo[]) {
+  const result: Record<string, ToolInfo[]> = {};
+  for (const t of tools) {
+    let cat = 'Built-in';
+    for (const [name, test] of Object.entries(TOOL_CATEGORIES)) {
+      if (test(t.name)) { cat = name; break; }
+    }
+    (result[cat] ??= []).push(t);
+  }
+  return result;
+}
+
 export default function SettingsPage() {
   const [health, setHealth] = useState<HealthData | null>(null);
   const [tools, setTools] = useState<ToolInfo[]>([]);
   const [mcpServers, setMcpServers] = useState<McpServer[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchAll = async () => {
+  // MCP connect form
+  const [mcpName, setMcpName] = useState('');
+  const [mcpUrl, setMcpUrl] = useState('');
+  const [mcpConnecting, setMcpConnecting] = useState(false);
+  const [mcpMessage, setMcpMessage] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
+
+  const fetchAll = useCallback(async () => {
     setLoading(true);
     try {
       const [healthRes, toolsRes, mcpRes] = await Promise.allSettled([
@@ -51,23 +83,42 @@ export default function SettingsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchAll();
-  }, []);
+  }, [fetchAll]);
 
-  const toolsByCategory = tools.reduce<Record<string, ToolInfo[]>>((acc, t) => {
-    let cat = 'builtin';
-    if (t.name.startsWith('core_db')) cat = 'xgen-core DB';
-    else if (t.name.startsWith('core_config')) cat = 'xgen-core Config';
-    else if (t.name.startsWith('core_auth')) cat = 'xgen-core Auth';
-    else if (t.name.startsWith('rag_') || t.name.startsWith('embedding_') || t.name.startsWith('rerank_')) cat = 'xgen-documents';
-    else if (t.name.startsWith('document_')) cat = 'xgen-documents';
-    if (!acc[cat]) acc[cat] = [];
-    acc[cat].push(t);
-    return acc;
-  }, {});
+  const handleMcpConnect = async () => {
+    if (!mcpName.trim() || !mcpUrl.trim()) return;
+    setMcpConnecting(true);
+    setMcpMessage(null);
+    try {
+      const res = await apiFetch<{ status: string; tools_loaded: number }>('/api/mcp/connect', {
+        method: 'POST',
+        body: JSON.stringify({ name: mcpName.trim(), transport: 'sse', url: mcpUrl.trim() }),
+      });
+      setMcpMessage({ type: 'ok', text: `${mcpName} 연결 완료 — 도구 ${res.tools_loaded}개 로드` });
+      setMcpName('');
+      setMcpUrl('');
+      await fetchAll();
+    } catch (err) {
+      setMcpMessage({ type: 'err', text: `연결 실패: ${(err as Error).message}` });
+    } finally {
+      setMcpConnecting(false);
+    }
+  };
+
+  const handleMcpDisconnect = async (name: string) => {
+    try {
+      await apiFetch(`/api/mcp/disconnect/${name}`, { method: 'DELETE' });
+      await fetchAll();
+    } catch {
+      // ignore
+    }
+  };
+
+  const toolsByCategory = categorize(tools);
 
   return (
     <div className={styles.page}>
@@ -104,6 +155,64 @@ export default function SettingsPage() {
         )}
       </section>
 
+      {/* MCP 서버 */}
+      <section className={styles.section}>
+        <h2><FiLink size={18} /> MCP 서버</h2>
+
+        {mcpServers.length > 0 && (
+          <div className={styles.mcpList}>
+            {mcpServers.map((s) => (
+              <div key={s.name} className={styles.mcpItem}>
+                <span className={`${styles.dot} ${styles.green}`} />
+                <div className={styles.mcpInfo}>
+                  <span className={styles.mcpName}>{s.name}</span>
+                  <span className={styles.mcpMeta}>{s.transport} — 도구 {s.tools_count}개</span>
+                </div>
+                <button
+                  className={styles.mcpDisconnect}
+                  onClick={() => handleMcpDisconnect(s.name)}
+                  title="연결 해제"
+                >
+                  <FiTrash2 size={14} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* MCP 연결 폼 */}
+        <div className={styles.mcpForm}>
+          <div className={styles.mcpFormRow}>
+            <input
+              className={styles.mcpInput}
+              placeholder="서버 이름 (예: my-mcp-server)"
+              value={mcpName}
+              onChange={(e) => setMcpName(e.target.value)}
+            />
+            <input
+              className={`${styles.mcpInput} ${styles.mcpInputWide}`}
+              placeholder="SSE URL (예: http://localhost:3001/sse)"
+              value={mcpUrl}
+              onChange={(e) => setMcpUrl(e.target.value)}
+            />
+            <button
+              className={styles.mcpConnectBtn}
+              onClick={handleMcpConnect}
+              disabled={mcpConnecting || !mcpName.trim() || !mcpUrl.trim()}
+            >
+              {mcpConnecting ? <FiRefreshCw size={14} className={styles.spin} /> : <FiPlus size={14} />}
+              연결
+            </button>
+          </div>
+          {mcpMessage && (
+            <div className={`${styles.mcpMsg} ${styles[mcpMessage.type]}`}>
+              {mcpMessage.type === 'ok' ? <FiCheck size={14} /> : <FiAlertCircle size={14} />}
+              {mcpMessage.text}
+            </div>
+          )}
+        </div>
+      </section>
+
       {/* 등록된 도구 */}
       <section className={styles.section}>
         <h2><FiTool size={18} /> 등록된 도구 ({tools.length}개)</h2>
@@ -122,24 +231,7 @@ export default function SettingsPage() {
         ))}
       </section>
 
-      {/* MCP 서버 */}
-      <section className={styles.section}>
-        <h2><FiLink size={18} /> MCP 서버</h2>
-        {mcpServers.length > 0 ? (
-          <div className={styles.toolList}>
-            {mcpServers.map((s) => (
-              <div key={s.name} className={styles.toolItem}>
-                <div className={styles.toolName}>{s.name}</div>
-                <div className={styles.toolDesc}>{s.transport} — {s.tools_count}개 도구</div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className={styles.empty}>연결된 MCP 서버가 없습니다.</div>
-        )}
-      </section>
-
-      {/* 연결 정보 */}
+      {/* 환경 정보 */}
       <section className={styles.section}>
         <h2><FiCpu size={18} /> 환경 정보</h2>
         <div className={styles.envGrid}>
