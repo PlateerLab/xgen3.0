@@ -151,6 +151,7 @@ services:
       MODEL_NAME: "gpt-4o-mini"
       CORE_SERVICE_BASE_URL: "http://xgen-core:8000"
       DOCUMENTS_SERVICE_BASE_URL: "http://xgen-documents:8000"
+      MCP_STATION_BASE_URL: "http://xgen-mcp-station:8000"
       XGEN_INTERNAL_API_KEY: "xgen-internal-key-2024"
     ports:
       - "8010:8000"
