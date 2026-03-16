@@ -1,0 +1,130 @@
+@use '@/app/_common/_variables.scss' as *;
+
+.timeline {
+  background: $white;
+  border: 1px solid $border-color;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-lg;
+}
+
+.title {
+  font-weight: 600;
+  font-size: $font-size-lg;
+  color: $text-primary;
+}
+
+.total {
+  font-size: $font-size-sm;
+  color: $text-muted;
+  font-weight: 500;
+}
+
+.steps {
+  display: flex;
+  flex-direction: column;
+}
+
+.step {
+  display: flex;
+  gap: $spacing-md;
+}
+
+.stepIndicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.dot {
+  width: 28px;
+  height: 28px;
+  border-radius: $radius-full;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $white;
+
+  &.think { background: $trace-think; }
+  &.tool_call { background: $trace-tool; }
+  &.response { background: $trace-response; }
+  &.error { background: $trace-error; }
+  &.approval { background: $warning; }
+}
+
+.line {
+  width: 2px;
+  flex: 1;
+  min-height: 24px;
+  background: $gray-200;
+}
+
+.stepContent {
+  flex: 1;
+  padding-bottom: $spacing-lg;
+  min-width: 0;
+}
+
+.stepHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-xs;
+}
+
+.stepType {
+  font-weight: 600;
+  font-size: $font-size-sm;
+
+  &.think { color: $trace-think; }
+  &.tool_call { color: $trace-tool; }
+  &.response { color: $trace-response; }
+  &.error { color: $trace-error; }
+  &.approval { color: $warning; }
+}
+
+.stepDuration {
+  font-size: $font-size-xs;
+  color: $text-muted;
+  font-family: 'Fira Code', monospace;
+}
+
+.bar {
+  height: 6px;
+  background: $gray-100;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: $spacing-xs;
+}
+
+.barFill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+
+  &.think { background: $trace-think; }
+  &.tool_call { background: $trace-tool; }
+  &.response { background: $trace-response; }
+  &.error { background: $trace-error; }
+  &.approval { background: $warning; }
+}
+
+.stepMeta {
+  font-size: $font-size-xs;
+  color: $text-muted;
+  font-family: 'Fira Code', monospace;
+  @include truncate;
+}
+
+.stepError {
+  font-size: $font-size-xs;
+  color: $error;
+  margin-top: $spacing-xs;
+}

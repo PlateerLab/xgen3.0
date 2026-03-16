@@ -1,0 +1,524 @@
+@use '@/app/_common/_variables.scss' as *;
+
+.message {
+  display: flex;
+  gap: $spacing-md;
+  padding: $spacing-lg $spacing-xl;
+  max-width: $chat-max-width;
+  margin: 0 auto;
+
+  &.user {
+    .avatar {
+      background: $blue-600;
+      color: $white;
+    }
+    .content {
+      background: $blue-50;
+      color: $gray-900;
+      border-radius: $radius-xl $radius-xl $radius-sm $radius-xl;
+    }
+  }
+
+  &.assistant {
+    .avatar {
+      background: $gray-100;
+      color: $gray-700;
+    }
+    .content {
+      background: transparent;
+      color: $gray-900;
+    }
+  }
+
+  &.toolMessage {
+    .avatar {
+      background: $slate-100;
+      color: $slate-500;
+      width: 28px;
+      height: 28px;
+      margin-top: 4px;
+      margin-left: 4px;
+    }
+    padding-top: $spacing-xs;
+    padding-bottom: $spacing-xs;
+  }
+}
+
+.avatar {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: $radius-full;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+}
+
+.body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.content {
+  padding: $spacing-md;
+  border-radius: $radius-lg;
+  font-size: $font-size-base;
+  line-height: 1.7;
+  word-break: break-word;
+}
+
+// Markdown content styles
+.markdownContent p {
+  margin: 0 0 0.75em;
+}
+
+.markdownContent p:last-child {
+  margin-bottom: 0;
+}
+
+.markdownContent h1,
+.markdownContent h2,
+.markdownContent h3,
+.markdownContent h4,
+.markdownContent h5,
+.markdownContent h6 {
+  margin: 1.25em 0 0.5em;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.markdownContent h1:first-child,
+.markdownContent h2:first-child,
+.markdownContent h3:first-child {
+  margin-top: 0;
+}
+
+.markdownContent h1 { font-size: 1.5em; }
+.markdownContent h2 { font-size: 1.3em; }
+.markdownContent h3 { font-size: 1.15em; }
+
+.markdownContent ul,
+.markdownContent ol {
+  margin: 0.5em 0;
+  padding-left: 1.5em;
+}
+
+.markdownContent li {
+  margin: 0.25em 0;
+}
+
+.markdownContent blockquote {
+  margin: 0.75em 0;
+  padding: 0.5em 1em;
+  border-left: 3px solid $gray-300;
+  color: $gray-600;
+  background: $gray-50;
+  border-radius: 0 $radius-sm $radius-sm 0;
+}
+
+.markdownContent hr {
+  border: none;
+  border-top: 1px solid $gray-200;
+  margin: 1em 0;
+}
+
+.markdownContent a {
+  color: $primary-blue;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.markdownContent a:hover {
+  text-decoration-color: $primary-blue;
+}
+
+.markdownContent strong {
+  font-weight: 600;
+}
+
+.markdownContent img {
+  max-width: 100%;
+  border-radius: $radius-md;
+}
+
+.markdownContent table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: $font-size-sm;
+  margin: 0.75em 0;
+}
+
+.markdownContent th,
+.markdownContent td {
+  border: 1px solid $gray-200;
+  padding: 0.5em 0.75em;
+  text-align: left;
+}
+
+.markdownContent th {
+  background: $gray-50;
+  font-weight: 600;
+}
+
+.markdownContent tr:nth-child(even) td {
+  background: $gray-50;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+  margin: 0.75em 0;
+}
+
+// Inline code
+.inlineCode {
+  background: $gray-100;
+  color: $primary-red;
+  padding: 0.15em 0.4em;
+  border-radius: $radius-sm;
+  font-size: 0.875em;
+  font-family: 'Fira Code', 'Consolas', monospace;
+}
+
+// Code block
+.codeBlock {
+  margin: 0.75em 0;
+  border: 1px solid $gray-200;
+  border-radius: $radius-md;
+  overflow: hidden;
+}
+
+.codeHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $spacing-xs $spacing-md;
+  background: $gray-100;
+  border-bottom: 1px solid $gray-200;
+}
+
+.codeLang {
+  font-size: $font-size-xs;
+  color: $gray-500;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.codeCopyBtn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px $spacing-sm;
+  font-size: $font-size-xs;
+  color: $gray-500;
+  border-radius: $radius-sm;
+  transition: $transition-fast;
+
+  &:hover {
+    color: $gray-700;
+    background: $gray-200;
+  }
+}
+
+.cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1.1em;
+  background: $primary-blue;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.spinIcon {
+  animation: spin 1.2s linear infinite;
+}
+
+// Think block
+.thinkBlock {
+  background: $chat-think-bg;
+  border: 1px solid $chat-think-border;
+  border-radius: $radius-md;
+  overflow: hidden;
+}
+
+.thinkToggle {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: $spacing-sm $spacing-md;
+  width: 100%;
+  font-size: $font-size-sm;
+  color: $primary-yellow;
+  font-weight: 500;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.03);
+  }
+}
+
+.thinkLabel {
+  flex: 1;
+  text-align: left;
+}
+
+.thinkContent {
+  padding: 0 $spacing-md $spacing-md;
+  font-size: $font-size-sm;
+  color: $gray-600;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+// Tool call
+.toolCall {
+  background: $chat-tool-bg;
+  border: 1px solid $chat-tool-border;
+  border-radius: $radius-md;
+  overflow: hidden;
+}
+
+.toolHeader {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $spacing-sm $spacing-md;
+  width: 100%;
+  font-size: $font-size-sm;
+  color: $gray-700;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.03);
+  }
+}
+
+.toolIcon {
+  color: $green-600;
+  flex-shrink: 0;
+}
+
+.toolName {
+  font-weight: 600;
+  color: $gray-800;
+  flex: 1;
+  text-align: left;
+}
+
+.toolBadge {
+  font-size: $font-size-xs;
+  color: $slate-500;
+  background: $slate-200;
+  padding: 1px $spacing-sm;
+  border-radius: $radius-full;
+  font-weight: 500;
+}
+
+.toolParams {
+  padding: 0 $spacing-md $spacing-md;
+  font-size: $font-size-xs;
+  color: $gray-600;
+  background: transparent;
+  font-family: 'Fira Code', 'Consolas', monospace;
+  overflow-x: auto;
+  line-height: 1.5;
+}
+
+// Tool result
+.toolResult {
+  border-radius: $radius-md;
+  padding: $spacing-sm $spacing-md;
+  font-size: $font-size-sm;
+}
+
+.toolSuccess {
+  background: rgba($success, 0.06);
+  border: 1px solid rgba($success, 0.2);
+}
+
+.toolError {
+  background: rgba($error, 0.06);
+  border: 1px solid rgba($error, 0.2);
+}
+
+.toolResultHeader {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  font-weight: 500;
+  font-size: $font-size-sm;
+}
+
+.toolSuccessIcon {
+  color: $success;
+}
+
+.toolErrorIcon {
+  color: $error;
+}
+
+.toolResultName {
+  color: $gray-800;
+  font-weight: 600;
+  font-family: 'Fira Code', 'Consolas', monospace;
+  font-size: $font-size-xs;
+}
+
+.toolResultStatus {
+  color: $gray-500;
+  font-weight: 400;
+  font-size: $font-size-xs;
+}
+
+.toolDuration {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: $text-muted;
+  font-size: $font-size-xs;
+  font-weight: 400;
+}
+
+.toolErrorText {
+  margin-top: $spacing-xs;
+  color: $error;
+  font-size: $font-size-xs;
+  font-family: 'Fira Code', 'Consolas', monospace;
+  padding: $spacing-xs $spacing-sm;
+  background: rgba($error, 0.05);
+  border-radius: $radius-sm;
+}
+
+.toolResultDetail {
+  margin-top: $spacing-xs;
+
+  summary {
+    font-size: $font-size-xs;
+    color: $text-muted;
+    cursor: pointer;
+    user-select: none;
+    padding: $spacing-xs 0;
+
+    &:hover {
+      color: $gray-600;
+    }
+  }
+}
+
+.toolResultPre {
+  margin-top: $spacing-xs;
+  padding: $spacing-sm;
+  background: $white;
+  border: 1px solid rgba($success, 0.15);
+  border-radius: $radius-sm;
+  font-size: $font-size-xs;
+  font-family: 'Fira Code', 'Consolas', monospace;
+  overflow-x: auto;
+  max-height: 200px;
+  overflow-y: auto;
+  line-height: 1.5;
+  color: $gray-700;
+}
+
+// Approval
+.approval {
+  background: $chat-approval-bg;
+  border: 1px solid $chat-approval-border;
+  border-radius: $radius-lg;
+  padding: $spacing-md;
+}
+
+.approvalHeader {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  font-weight: 600;
+  color: $primary-yellow;
+  margin-bottom: $spacing-sm;
+}
+
+.approvalAction {
+  font-family: 'Fira Code', monospace;
+  font-size: $font-size-sm;
+  background: rgba(0, 0, 0, 0.05);
+  padding: $spacing-sm;
+  border-radius: $radius-sm;
+  margin-bottom: $spacing-sm;
+}
+
+.approvalReason {
+  font-size: $font-size-sm;
+  color: $gray-600;
+  margin-bottom: $spacing-md;
+}
+
+.approvalButtons {
+  display: flex;
+  gap: $spacing-sm;
+}
+
+.approveBtn {
+  padding: $spacing-sm $spacing-lg;
+  background: $success;
+  color: $white;
+  border-radius: $radius-md;
+  font-size: $font-size-sm;
+  font-weight: 500;
+  transition: $transition-fast;
+
+  &:hover {
+    background: $green-700;
+  }
+}
+
+.denyBtn {
+  padding: $spacing-sm $spacing-lg;
+  background: $gray-200;
+  color: $gray-700;
+  border-radius: $radius-md;
+  font-size: $font-size-sm;
+  font-weight: 500;
+  transition: $transition-fast;
+
+  &:hover {
+    background: $gray-300;
+  }
+}
+
+// Actions
+.actions {
+  display: flex;
+  gap: $spacing-xs;
+  opacity: 0;
+  transition: $transition-fast;
+
+  .message:hover & {
+    opacity: 1;
+  }
+
+  button {
+    padding: $spacing-xs;
+    color: $text-muted;
+    border-radius: $radius-sm;
+    transition: $transition-fast;
+
+    &:hover {
+      color: $gray-700;
+      background: $gray-100;
+    }
+  }
+}

@@ -1,0 +1,172 @@
+@use '@/app/_common/_variables.scss' as *;
+
+// Agent select page
+.selectPage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: $background-light;
+}
+
+.selectContent {
+  text-align: center;
+  max-width: 560px;
+  width: 100%;
+  padding: $spacing-2xl;
+
+  h1 {
+    font-size: $font-size-2xl;
+    font-weight: 700;
+    color: $text-primary;
+    margin-top: $spacing-lg;
+    margin-bottom: $spacing-sm;
+  }
+}
+
+.selectIcon {
+  width: 72px;
+  height: 72px;
+  border-radius: $radius-xl;
+  background: linear-gradient(135deg, $blue-100, rgba($primary-purple, 0.12));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  color: $primary-blue;
+}
+
+.selectDesc {
+  color: $text-secondary;
+  font-size: $font-size-sm;
+  line-height: 1.6;
+  margin-bottom: $spacing-2xl;
+}
+
+.loadingState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $spacing-md;
+  color: $text-muted;
+  padding: $spacing-2xl 0;
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+}
+
+.spinIcon {
+  animation: spin 1.2s linear infinite;
+}
+
+.emptyAgents {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $spacing-md;
+  color: $text-muted;
+  padding: $spacing-2xl 0;
+
+  p {
+    font-size: $font-size-sm;
+  }
+}
+
+.agentList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+  text-align: left;
+}
+
+.agentOption {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  padding: $spacing-md $spacing-lg;
+  background: $white;
+  border: 1px solid $border-color;
+  border-radius: $radius-lg;
+  transition: $transition-fast;
+
+  &:hover {
+    border-color: $blue-200;
+    background: $blue-50;
+    transform: translateY(-1px);
+    box-shadow: $shadow-sm;
+  }
+}
+
+.agentOptionIcon {
+  width: 44px;
+  height: 44px;
+  background: $gray-100;
+  border-radius: $radius-md;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $gray-600;
+  flex-shrink: 0;
+}
+
+.agentOptionInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.agentOptionName {
+  font-weight: 600;
+  color: $text-primary;
+  font-size: $font-size-base;
+}
+
+.agentOptionDesc {
+  font-size: $font-size-sm;
+  color: $text-secondary;
+  margin-top: 2px;
+}
+
+.agentOptionMeta {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  margin-top: $spacing-xs;
+}
+
+.agentMetaItem {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: $font-size-xs;
+  color: $text-muted;
+}
+
+.agentStatus {
+  font-size: $font-size-xs;
+  padding: 1px $spacing-sm;
+  border-radius: $radius-full;
+  font-weight: 500;
+}
+
+.statusActive {
+  color: $green-700;
+  background: rgba($success, 0.1);
+}
+
+.statusInactive {
+  color: $gray-500;
+  background: $gray-100;
+}
+
+.agentOptionArrow {
+  color: $text-muted;
+  flex-shrink: 0;
+  transition: $transition-fast;
+
+  .agentOption:hover & {
+    color: $primary-blue;
+    transform: translateX(2px);
+  }
+}

@@ -1,0 +1,17 @@
+name: customer-support
+description: 고객 문의 응답 agent — 고객 정보 조회, 주문 내역 확인 후 답변
+
+model: claude-sonnet
+
+tools:
+  - http_request
+  - db_query
+  - file_read
+
+system_prompt: |
+  너는 고객 지원 담당 AI야.
+  고객이 질문하면 DB에서 정보를 조회하고 정확하게 답변해.
+  모르는 건 모른다고 솔직하게 말해.
+
+approval_required:
+  - "DELETE *"

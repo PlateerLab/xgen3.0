@@ -1,0 +1,211 @@
+@use '@/app/_common/_variables.scss' as *;
+
+.tracePage {
+  min-height: 100vh;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid $gray-200;
+  border-top-color: $primary-blue;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.error {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  color: $error;
+}
+
+// Header
+.header {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  padding: $spacing-lg $spacing-2xl;
+  border-bottom: 1px solid $border-color;
+  background: $white;
+  position: sticky;
+  top: 0;
+  z-index: $z-header;
+}
+
+.backBtn {
+  padding: $spacing-sm;
+  color: $text-secondary;
+  border-radius: $radius-md;
+  transition: $transition-fast;
+
+  &:hover {
+    background: $gray-100;
+    color: $text-primary;
+  }
+}
+
+.headerInfo {
+  h1 {
+    font-size: $font-size-lg;
+    font-weight: 600;
+    color: $text-primary;
+  }
+}
+
+.headerMeta {
+  display: flex;
+  gap: $spacing-lg;
+  margin-top: $spacing-xs;
+  font-size: $font-size-xs;
+  color: $text-muted;
+
+  span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+}
+
+// Content
+.content {
+  padding: $spacing-2xl;
+  max-width: 1000px;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-2xl;
+}
+
+.timelineSection {
+  // TraceTimeline component handles its own styling
+}
+
+// Step Details
+.sectionTitle {
+  font-size: $font-size-lg;
+  font-weight: 600;
+  color: $text-primary;
+  margin-bottom: $spacing-md;
+}
+
+.stepList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.stepDetail {
+  background: $white;
+  border: 1px solid $border-color;
+  border-radius: $radius-lg;
+  overflow: hidden;
+}
+
+.stepDetailHeader {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  padding: $spacing-md $spacing-lg;
+  width: 100%;
+  text-align: left;
+  transition: $transition-fast;
+
+  &:hover {
+    background: $gray-50;
+  }
+}
+
+.stepIcon {
+  width: 28px;
+  height: 28px;
+  border-radius: $radius-full;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $white;
+  flex-shrink: 0;
+
+  &.think { background: $trace-think; }
+  &.tool_call { background: $trace-tool; }
+  &.response { background: $trace-response; }
+  &.error { background: $trace-error; }
+  &.approval { background: $warning; }
+}
+
+.stepLabel {
+  flex: 1;
+  font-weight: 500;
+  font-size: $font-size-sm;
+  color: $text-primary;
+}
+
+.stepTime {
+  font-size: $font-size-xs;
+  color: $text-muted;
+  font-family: 'Fira Code', monospace;
+}
+
+.stepBody {
+  padding: 0 $spacing-lg $spacing-lg;
+  border-top: 1px solid $border-color-light;
+}
+
+.meta {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+  padding-top: $spacing-md;
+  font-size: $font-size-sm;
+  color: $text-secondary;
+}
+
+.codeBlock {
+  margin-top: $spacing-md;
+}
+
+.codeLabel {
+  font-size: $font-size-xs;
+  font-weight: 600;
+  color: $text-muted;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: $spacing-xs;
+}
+
+.codeBlock pre {
+  background: $gray-50;
+  border: 1px solid $border-color;
+  border-radius: $radius-md;
+  padding: $spacing-md;
+  font-size: $font-size-xs;
+  font-family: 'Fira Code', 'Consolas', monospace;
+  overflow-x: auto;
+  line-height: 1.5;
+  color: $gray-800;
+}
+
+.responseText {
+  padding-top: $spacing-md;
+  font-size: $font-size-sm;
+  color: $text-primary;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.errorText {
+  padding-top: $spacing-md;
+  font-size: $font-size-sm;
+  color: $error;
+}

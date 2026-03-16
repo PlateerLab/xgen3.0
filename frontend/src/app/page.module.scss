@@ -1,0 +1,260 @@
+@use '@/app/_common/_variables.scss' as *;
+
+.dashboard {
+  padding: $spacing-2xl;
+  max-width: 1200px;
+}
+
+// Header
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: $spacing-2xl;
+}
+
+.title {
+  font-size: $font-size-2xl;
+  font-weight: 700;
+  color: $text-primary;
+}
+
+.subtitle {
+  font-size: $font-size-sm;
+  color: $text-secondary;
+  margin-top: $spacing-xs;
+}
+
+.primaryBtn {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $spacing-sm $spacing-lg;
+  background: $primary-blue;
+  color: $white;
+  border-radius: $radius-lg;
+  font-size: $font-size-sm;
+  font-weight: 500;
+  transition: $transition-fast;
+
+  &:hover {
+    background: $blue-700;
+  }
+}
+
+// Stats
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: $spacing-lg;
+  margin-bottom: $spacing-2xl;
+}
+
+.statCard {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  padding: $spacing-lg;
+  background: $white;
+  border: 1px solid $border-color;
+  border-radius: $radius-lg;
+}
+
+.statIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: $radius-lg;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &.blue {
+    background: $blue-50;
+    color: $primary-blue;
+  }
+  &.green {
+    background: rgba($success, 0.1);
+    color: $success;
+  }
+  &.purple {
+    background: rgba($primary-purple, 0.1);
+    color: $primary-purple;
+  }
+}
+
+.statValue {
+  font-size: $font-size-2xl;
+  font-weight: 700;
+  color: $text-primary;
+}
+
+.statLabel {
+  font-size: $font-size-sm;
+  color: $text-secondary;
+}
+
+// Section
+.section {
+  margin-bottom: $spacing-2xl;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-lg;
+
+  h2 {
+    font-size: $font-size-xl;
+    font-weight: 600;
+    color: $text-primary;
+  }
+}
+
+.seeAll {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  font-size: $font-size-sm;
+  color: $primary-blue;
+  font-weight: 500;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// Loading
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: $spacing-2xl;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid $gray-200;
+  border-top-color: $primary-blue;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+// Agent Grid
+.agentGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: $spacing-lg;
+}
+
+.agentCard {
+  background: $white;
+  border: 1px solid $border-color;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  transition: $transition-base;
+
+  &:hover {
+    border-color: $blue-200;
+    box-shadow: $shadow-md;
+  }
+}
+
+.agentHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-sm;
+}
+
+.agentName {
+  font-weight: 600;
+  font-size: $font-size-base;
+  color: $text-primary;
+}
+
+.status {
+  font-size: $font-size-xs;
+  padding: 2px $spacing-sm;
+  border-radius: $radius-full;
+  font-weight: 500;
+
+  &.active {
+    background: rgba($success, 0.1);
+    color: $green-700;
+  }
+  &.draft {
+    background: $gray-100;
+    color: $gray-600;
+  }
+  &.inactive {
+    background: rgba($error, 0.1);
+    color: $primary-red;
+  }
+}
+
+.agentDesc {
+  font-size: $font-size-sm;
+  color: $text-secondary;
+  line-height: 1.5;
+  margin-bottom: $spacing-md;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.agentMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-md;
+  margin-bottom: $spacing-md;
+}
+
+.metaItem {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: $font-size-xs;
+  color: $text-muted;
+}
+
+.agentActions {
+  display: flex;
+  gap: $spacing-sm;
+}
+
+.chatBtn {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: $spacing-xs $spacing-md;
+  background: $primary-blue;
+  color: $white;
+  border-radius: $radius-md;
+  font-size: $font-size-sm;
+  font-weight: 500;
+  transition: $transition-fast;
+
+  &:hover {
+    background: $blue-700;
+  }
+}
+
+.detailBtn {
+  padding: $spacing-xs $spacing-md;
+  background: $gray-100;
+  color: $gray-700;
+  border-radius: $radius-md;
+  font-size: $font-size-sm;
+  font-weight: 500;
+  transition: $transition-fast;
+
+  &:hover {
+    background: $gray-200;
+  }
+}

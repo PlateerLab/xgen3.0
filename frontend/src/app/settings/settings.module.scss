@@ -1,0 +1,182 @@
+.page {
+  padding: 2rem;
+  max-width: 960px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+
+  h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+  }
+}
+
+.refreshBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  background: #fff;
+  font-size: 0.875rem;
+  cursor: pointer;
+
+  &:hover {
+    background: #f7fafc;
+  }
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.section {
+  margin-bottom: 2rem;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+
+  h2 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+  }
+}
+
+.statusGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.statusCard {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: #f7fafc;
+  border-radius: 0.5rem;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+
+  &.green { background: #48bb78; }
+  &.red { background: #f56565; }
+}
+
+.statusLabel {
+  font-size: 0.75rem;
+  color: #718096;
+  text-transform: uppercase;
+}
+
+.statusValue {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.toolCategory {
+  margin-bottom: 1.25rem;
+
+  h3 {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #4a5568;
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.375rem;
+    border-bottom: 1px solid #edf2f7;
+  }
+}
+
+.toolList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.toolItem {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+
+  &:hover {
+    background: #f7fafc;
+  }
+}
+
+.toolName {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #2d3748;
+  white-space: nowrap;
+  min-width: 200px;
+}
+
+.toolDesc {
+  font-size: 0.8125rem;
+  color: #718096;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.empty {
+  color: #a0aec0;
+  font-size: 0.875rem;
+  padding: 1rem 0;
+}
+
+.envGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.envRow {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+
+  &:hover {
+    background: #f7fafc;
+  }
+}
+
+.envKey {
+  font-size: 0.8125rem;
+  color: #4a5568;
+  min-width: 180px;
+}
+
+.envVal {
+  font-size: 0.8125rem;
+  color: #718096;
+  background: #edf2f7;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
+}

@@ -1,0 +1,261 @@
+@use '@/app/_common/_variables.scss' as *;
+
+.page {
+  padding: $spacing-2xl;
+  max-width: 800px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  margin-bottom: $spacing-2xl;
+}
+
+.backBtn {
+  padding: $spacing-sm;
+  color: $text-secondary;
+  border-radius: $radius-md;
+  transition: $transition-fast;
+
+  &:hover {
+    background: $gray-100;
+    color: $text-primary;
+  }
+}
+
+.title {
+  font-size: $font-size-2xl;
+  font-weight: 700;
+  color: $text-primary;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xl;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.label {
+  font-size: $font-size-sm;
+  font-weight: 600;
+  color: $text-primary;
+
+  .required {
+    color: $primary-red;
+    margin-left: 2px;
+  }
+}
+
+.input {
+  padding: $spacing-sm $spacing-md;
+  border: 1px solid $border-color;
+  border-radius: $radius-md;
+  font-size: $font-size-sm;
+  color: $text-primary;
+  background: $white;
+  transition: $transition-fast;
+
+  &:focus {
+    outline: none;
+    border-color: $primary-blue;
+    box-shadow: 0 0 0 3px rgba($primary-blue, 0.1);
+  }
+
+  &::placeholder {
+    color: $text-muted;
+  }
+}
+
+.select {
+  @extend .input;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right $spacing-md center;
+  padding-right: $spacing-2xl;
+}
+
+.textarea {
+  @extend .input;
+  min-height: 120px;
+  resize: vertical;
+  font-family: 'Fira Code', monospace;
+  line-height: 1.6;
+}
+
+.hint {
+  font-size: $font-size-xs;
+  color: $text-muted;
+  margin-top: 2px;
+}
+
+// Tools checkbox list
+.toolsSection {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.toolsLoading {
+  font-size: $font-size-sm;
+  color: $text-muted;
+  padding: $spacing-md;
+}
+
+.toolsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: $border-color;
+  border: 1px solid $border-color;
+  border-radius: $radius-lg;
+  overflow: hidden;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.toolCheckbox {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  padding: $spacing-sm $spacing-md;
+  background: $white;
+  cursor: pointer;
+  transition: $transition-fast;
+
+  &:hover {
+    background: $gray-50;
+  }
+
+  input[type='checkbox'] {
+    width: 16px;
+    height: 16px;
+    accent-color: $primary-blue;
+    cursor: pointer;
+  }
+}
+
+.toolInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.toolName {
+  font-size: $font-size-sm;
+  font-weight: 500;
+  color: $text-primary;
+}
+
+.toolDesc {
+  font-size: $font-size-xs;
+  color: $text-secondary;
+  @include truncate;
+}
+
+.toolSource {
+  font-size: $font-size-xs;
+  padding: 2px $spacing-sm;
+  border-radius: $radius-full;
+  font-weight: 500;
+  flex-shrink: 0;
+
+  &.builtin {
+    background: $blue-50;
+    color: $blue-600;
+  }
+  &.mcp {
+    background: rgba($primary-purple, 0.1);
+    color: $primary-purple;
+  }
+  &.custom {
+    background: rgba($success, 0.1);
+    color: $green-600;
+  }
+  &.graph {
+    background: rgba($warning, 0.1);
+    color: $primary-yellow;
+  }
+}
+
+.toolsEmpty {
+  padding: $spacing-md;
+  text-align: center;
+  color: $text-muted;
+  font-size: $font-size-sm;
+  background: $white;
+}
+
+// Actions
+.actions {
+  display: flex;
+  gap: $spacing-md;
+  padding-top: $spacing-md;
+  border-top: 1px solid $border-color;
+}
+
+.submitBtn {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $spacing-sm $spacing-xl;
+  background: $primary-blue;
+  color: $white;
+  border: none;
+  border-radius: $radius-lg;
+  font-size: $font-size-sm;
+  font-weight: 500;
+  cursor: pointer;
+  transition: $transition-fast;
+
+  &:hover:not(:disabled) {
+    background: $blue-700;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.cancelBtn {
+  padding: $spacing-sm $spacing-xl;
+  background: transparent;
+  color: $text-secondary;
+  border: 1px solid $border-color;
+  border-radius: $radius-lg;
+  font-size: $font-size-sm;
+  font-weight: 500;
+  cursor: pointer;
+  transition: $transition-fast;
+
+  &:hover {
+    background: $gray-50;
+    color: $text-primary;
+  }
+}
+
+// Error / Success messages
+.message {
+  padding: $spacing-md;
+  border-radius: $radius-md;
+  font-size: $font-size-sm;
+
+  &.errorMsg {
+    background: rgba($error, 0.1);
+    color: $primary-red;
+    border: 1px solid rgba($error, 0.2);
+  }
+
+  &.successMsg {
+    background: rgba($success, 0.1);
+    color: $green-700;
+    border: 1px solid rgba($success, 0.2);
+  }
+}

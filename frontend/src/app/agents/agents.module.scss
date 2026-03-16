@@ -1,0 +1,176 @@
+@use '@/app/_common/_variables.scss' as *;
+
+.page {
+  padding: $spacing-2xl;
+  max-width: 1000px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-2xl;
+
+  h1 {
+    font-size: $font-size-2xl;
+    font-weight: 700;
+    color: $text-primary;
+  }
+}
+
+.searchBox {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $spacing-sm $spacing-md;
+  background: $gray-50;
+  border: 1px solid $border-color;
+  border-radius: $radius-lg;
+  width: 280px;
+  color: $text-muted;
+  transition: $transition-fast;
+
+  &:focus-within {
+    border-color: $primary-blue;
+    background: $white;
+  }
+
+  input {
+    border: none;
+    background: transparent;
+    outline: none;
+    flex: 1;
+    font-size: $font-size-sm;
+
+    &::placeholder {
+      color: $text-muted;
+    }
+  }
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: $spacing-2xl;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid $gray-200;
+  border-top-color: $primary-blue;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: $border-color;
+  border: 1px solid $border-color;
+  border-radius: $radius-lg;
+  overflow: hidden;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  padding: $spacing-md $spacing-lg;
+  background: $white;
+  transition: $transition-fast;
+
+  &:hover {
+    background: $gray-50;
+  }
+}
+
+.rowIcon {
+  width: 36px;
+  height: 36px;
+  background: $gray-100;
+  border-radius: $radius-md;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $gray-500;
+  flex-shrink: 0;
+}
+
+.rowInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.rowName {
+  font-weight: 600;
+  font-size: $font-size-sm;
+  color: $text-primary;
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.badge {
+  font-size: $font-size-xs;
+  padding: 1px $spacing-sm;
+  border-radius: $radius-full;
+  font-weight: 500;
+
+  &.active {
+    background: rgba($success, 0.1);
+    color: $green-700;
+  }
+  &.draft {
+    background: $gray-100;
+    color: $gray-600;
+  }
+  &.inactive {
+    background: rgba($error, 0.1);
+    color: $primary-red;
+  }
+}
+
+.rowDesc {
+  font-size: $font-size-xs;
+  color: $text-secondary;
+  margin-top: 2px;
+  @include truncate;
+}
+
+.rowMeta {
+  display: flex;
+  gap: $spacing-md;
+  font-size: $font-size-xs;
+  color: $text-muted;
+  flex-shrink: 0;
+
+  span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+}
+
+.rowChat {
+  padding: $spacing-sm;
+  color: $primary-blue;
+  border-radius: $radius-md;
+  transition: $transition-fast;
+
+  &:hover {
+    background: $blue-50;
+  }
+}
+
+.empty {
+  padding: $spacing-2xl;
+  text-align: center;
+  color: $text-muted;
+  background: $white;
+}

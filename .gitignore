@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# Node
+frontend/node_modules/
+frontend/.next/
+
+# Environment
+.env
+*.env.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Docker volumes
+pgdata/
+qdrant_data/
+minio_data/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Repos (cloned references, not part of this project)
+repos/
+
+# Test
+.pytest_cache/
+.coverage
+htmlcov/
