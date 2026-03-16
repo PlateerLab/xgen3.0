@@ -70,6 +70,18 @@ export function streamChat(
 
         // xgen-workflow SSE 포맷 → xgen3.0 프론트엔드 포맷 변환
         if (eventType === 'log') {
+          // approval 이벤트 감지
+          if (parsed.approval) {
+            onEvent({
+              event: 'approval_required',
+              data: {
+                request_id: parsed.approval.request_id || '',
+                action: parsed.approval.action || parsed.message || '',
+                reason: parsed.approval.reason || '',
+              },
+            });
+            return;
+          }
           // log 이벤트 → think 계열로 매핑
           const msg = parsed.message || '';
           if (msg.startsWith('Thinking')) {
@@ -133,12 +145,17 @@ export function streamChat(
 // --- Approval ---
 
 export async function respondApproval(
-  sessionId: string,
-  approved: boolean
+  requestId: string,
+  approved: boolean,
+  reason = '',
 ): Promise<void> {
-  return apiFetch('/api/workflow/approval', {
+  return apiFetch('/api/approval/action', {
     method: 'POST',
-    body: JSON.stringify({ session_id: sessionId, approved }),
+    body: JSON.stringify({
+      request_id: requestId,
+      action: approved ? 'approve' : 'reject',
+      reason,
+    }),
   });
 }
 

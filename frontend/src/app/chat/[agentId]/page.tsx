@@ -174,6 +174,7 @@ export default function ChatPage() {
               updateAssistant((m) => ({
                 ...m,
                 approval: {
+                  request_id: (data.request_id as string) || '',
                   action: data.action as string,
                   reason: data.reason as string,
                   status: 'pending' as const,
@@ -234,13 +235,12 @@ export default function ChatPage() {
     );
   };
 
-  const handleApproval = async (approved: boolean) => {
-    if (!sessionId) return;
+  const handleApproval = async (requestId: string, approved: boolean) => {
     try {
-      await respondApproval(sessionId, approved);
+      await respondApproval(requestId, approved);
       setMessages((prev) =>
         prev.map((m) =>
-          m.approval?.status === 'pending'
+          m.approval?.request_id === requestId
             ? {
                 ...m,
                 approval: {

@@ -102,6 +102,8 @@ async def execute_stream(req: WorkflowRequest, request: Request):
     history_store: HistoryStore | None = request.app.state.history_store
     trace_collector: TraceCollector = request.app.state.trace_collector
     _start_time = __import__("time").time()
+    _agent_key = f"{req.interaction_id or 'default'}_{id(agent)}"
+    _active_agents[_agent_key] = agent
 
     async def event_generator():
         result_text = ""
@@ -130,6 +132,7 @@ async def execute_stream(req: WorkflowRequest, request: Request):
                 )
             }
         finally:
+            _active_agents.pop(_agent_key, None)
             await model_client.close()
             # 실행 이력 기록
             if history_store:

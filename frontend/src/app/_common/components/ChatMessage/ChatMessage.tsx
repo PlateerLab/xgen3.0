@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -21,11 +22,12 @@ import {
   FiLoader,
   FiCheckCircle,
   FiXCircle,
+  FiMessageSquare,
 } from 'react-icons/fi';
 
 interface ChatMessageProps {
   message: Message;
-  onApprove?: (approved: boolean) => void;
+  onApprove?: (requestId: string, approved: boolean) => void;
 }
 
 function CodeBlock({
@@ -171,6 +173,19 @@ export default function ChatMessage({ message, onApprove }: ChatMessageProps) {
                 </pre>
               </details>
             )}
+            {/* create_agent 성공 시 바로 대화하기 링크 */}
+            {tr.tool === 'create_agent' && tr.success && tr.result != null && (() => {
+              const r = tr.result as Record<string, unknown>;
+              const agent = r.agent as Record<string, string> | undefined;
+              const agentName = agent?.name || (r.name as string) || '';
+              if (!agentName) return null;
+              return (
+                <Link href={`/chat/${agentName}`} className={styles.agentLink}>
+                  <FiMessageSquare size={13} />
+                  {agentName} 에이전트와 대화하기
+                </Link>
+              );
+            })()}
           </div>
         </div>
       </div>
@@ -262,13 +277,13 @@ export default function ChatMessage({ message, onApprove }: ChatMessageProps) {
             <div className={styles.approvalButtons}>
               <button
                 className={styles.approveBtn}
-                onClick={() => onApprove?.(true)}
+                onClick={() => onApprove?.(message.approval?.request_id || '', true)}
               >
                 승인
               </button>
               <button
                 className={styles.denyBtn}
-                onClick={() => onApprove?.(false)}
+                onClick={() => onApprove?.(message.approval?.request_id || '', false)}
               >
                 거부
               </button>

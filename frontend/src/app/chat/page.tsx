@@ -295,7 +295,7 @@ export default function ChatIndex() {
         ) : (
           <>
             {messages.map((msg) => (
-              <ChatMessage key={msg.id} message={msg} onApprove={() => {}} />
+              <ChatMessage key={msg.id} message={msg} />
             ))}
             <div ref={messagesEndRef} />
           </>

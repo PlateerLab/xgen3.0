@@ -72,6 +72,7 @@ export interface ToolResult {
 }
 
 export interface ApprovalRequest {
+  request_id: string;
   action: string;
   reason: string;
   status: 'pending' | 'approved' | 'denied';

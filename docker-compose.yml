@@ -144,6 +144,8 @@ services:
         condition: service_healthy
       xgen-core:
         condition: service_healthy
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
     environment:
       DATABASE_URL: "postgresql://xgen:xgen1234@postgres:5432/xgen_agent"
       MODEL_BASE_URL: "https://api.openai.com/v1"

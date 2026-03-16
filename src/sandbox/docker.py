@@ -110,47 +110,47 @@ class DockerSandbox:
     async def _run_container(
         self, container_name: str, code_file: Path
     ) -> SandboxResult:
-        """실제 Docker 컨테이너 실행."""
+        """실제 Docker 컨테이너 실행. 코드는 stdin으로 전달 (파일 마운트 불필요)."""
         import time
 
-        # Docker run 명령 조립
+        code = code_file.read_text(encoding="utf-8")
+
+        # Docker run 명령 조립 — stdin으로 코드 전달
         cmd = [
             "docker", "run",
             "--name", container_name,
             "--rm",
+            "-i",  # stdin 활성화
             # 리소스 제한
             "--memory", self.config.memory_limit,
             f"--cpus={self.config.cpu_limit}",
             # 네트워크
             f"--network={self.config.network}",
             # 보안 강화
-            "--read-only",
-            "--tmpfs", "/tmp:rw,noexec,nosuid,size=64m",
-            "--no-new-privileges",
-            # 코드 마운트
-            "-v", f"{code_file.resolve()}:/code/main.py:ro",
-            "-w", "/code",
+            "--security-opt", "no-new-privileges",
         ]
 
         # pip 패키지 사전 설치가 필요하면 entrypoint 조정
         if self.config.pip_packages:
-            install_cmd = f"pip install -q {' '.join(self.config.pip_packages)} && python main.py"
+            install_cmd = f"pip install -q {' '.join(self.config.pip_packages)} && python -"
             cmd.extend([self.config.image, "sh", "-c", install_cmd])
         else:
-            cmd.extend([self.config.image, "python", "main.py"])
+            cmd.extend([self.config.image, "python", "-"])
 
         start_time = time.time()
 
         try:
             proc = await asyncio.create_subprocess_exec(
                 *cmd,
+                stdin=asyncio.subprocess.PIPE,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
             )
 
             try:
                 stdout_bytes, stderr_bytes = await asyncio.wait_for(
-                    proc.communicate(), timeout=self.config.timeout
+                    proc.communicate(input=code.encode("utf-8")),
+                    timeout=self.config.timeout,
                 )
                 duration_ms = (time.time() - start_time) * 1000
 

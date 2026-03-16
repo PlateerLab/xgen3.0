@@ -1,5 +1,13 @@
 FROM python:3.12-slim
 
+# Docker CLI 설치 (sandbox용 — docker.sock 마운트 필요)
+RUN apt-get update -qq && \
+    apt-get install -y -qq --no-install-recommends curl && \
+    curl -fsSL https://get.docker.com | sh && \
+    apt-get remove -y curl && \
+    apt-get autoremove -y && \
+    rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
 # 의존성 먼저 설치 (캐시 활용)
