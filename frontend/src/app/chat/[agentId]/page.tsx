@@ -79,21 +79,37 @@ export default function ChatPage() {
       setInput('');
       setIsStreaming(true);
 
-      // Placeholder for assistant
-      const assistantId = `a-${Date.now()}`;
-      const assistantMsg: Message = {
-        id: assistantId,
-        role: 'assistant',
-        content: '',
-        timestamp: new Date().toISOString(),
-        is_streaming: true,
+      // 현재 assistant 메시지 ID를 추적 (도구 호출 후 새 메시지 생성용)
+      let currentAssistantId = `a-${Date.now()}`;
+      let hasToolCalls = false;
+
+      const addAssistantMsg = () => {
+        const msg: Message = {
+          id: currentAssistantId,
+          role: 'assistant',
+          content: '',
+          timestamp: new Date().toISOString(),
+          is_streaming: true,
+        };
+        setMessages((prev) => [...prev, msg]);
       };
-      setMessages((prev) => [...prev, assistantMsg]);
+
+      // 최초 assistant 메시지
+      addAssistantMsg();
 
       const updateAssistant = (updater: (msg: Message) => Message) => {
         setMessages((prev) =>
-          prev.map((m) => (m.id === assistantId ? updater(m) : m))
+          prev.map((m) => (m.id === currentAssistantId ? updater(m) : m))
         );
+      };
+
+      // 도구 호출 이후 새 assistant 메시지를 맨 아래에 추가
+      const ensureNewAssistantAfterTools = () => {
+        if (hasToolCalls) {
+          currentAssistantId = `a-${Date.now()}-reply`;
+          addAssistantMsg();
+          hasToolCalls = false;
+        }
       };
 
       abortRef.current = streamChat(
@@ -115,6 +131,7 @@ export default function ChatPage() {
               break;
 
             case 'content_delta':
+              ensureNewAssistantAfterTools();
               updateAssistant((m) => ({
                 ...m,
                 content: m.content + (data.text || ''),
@@ -150,7 +167,7 @@ export default function ChatPage() {
               break;
 
             case 'tool_call_done':
-              // Add tool result as separate message
+              hasToolCalls = true;
               setMessages((prev) => [
                 ...prev,
                 {
@@ -184,6 +201,7 @@ export default function ChatPage() {
               break;
 
             case 'error':
+              ensureNewAssistantAfterTools();
               updateAssistant((m) => ({
                 ...m,
                 content: m.content + `\n\n오류: ${data.message || '알 수 없는 오류'}`,
@@ -211,6 +229,7 @@ export default function ChatPage() {
         },
         // onError
         (err) => {
+          ensureNewAssistantAfterTools();
           updateAssistant((m) => ({
             ...m,
             content: m.content + `\n\n연결 오류: ${err.message}`,

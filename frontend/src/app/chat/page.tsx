@@ -79,23 +79,36 @@ export default function ChatIndex() {
       setInput('');
       setIsStreaming(true);
 
-      const assistantId = `a-${Date.now()}`;
-      const assistantMsg: Message = {
-        id: assistantId,
-        role: 'assistant',
-        content: '',
-        timestamp: new Date().toISOString(),
-        is_streaming: true,
+      let currentAssistantId = `a-${Date.now()}`;
+      let hasToolCalls = false;
+
+      const addAssistantMsg = () => {
+        const msg: Message = {
+          id: currentAssistantId,
+          role: 'assistant',
+          content: '',
+          timestamp: new Date().toISOString(),
+          is_streaming: true,
+        };
+        setMessages((prev) => [...prev, msg]);
       };
-      setMessages((prev) => [...prev, assistantMsg]);
+
+      addAssistantMsg();
 
       const updateAssistant = (updater: (msg: Message) => Message) => {
         setMessages((prev) =>
-          prev.map((m) => (m.id === assistantId ? updater(m) : m))
+          prev.map((m) => (m.id === currentAssistantId ? updater(m) : m))
         );
       };
 
-      // default 에이전트 (메타 에이전트)로 대화
+      const ensureNewAssistantAfterTools = () => {
+        if (hasToolCalls) {
+          currentAssistantId = `a-${Date.now()}-reply`;
+          addAssistantMsg();
+          hasToolCalls = false;
+        }
+      };
+
       abortRef.current = streamChat(
         'default',
         trimmed,
@@ -107,6 +120,7 @@ export default function ChatIndex() {
               if (data.session_id) setSessionId(data.session_id as string);
               break;
             case 'content_delta':
+              ensureNewAssistantAfterTools();
               updateAssistant((m) => ({
                 ...m,
                 content: m.content + (data.text || ''),
@@ -135,6 +149,7 @@ export default function ChatIndex() {
               }));
               break;
             case 'tool_call_done':
+              hasToolCalls = true;
               setMessages((prev) => [
                 ...prev,
                 {
@@ -154,6 +169,7 @@ export default function ChatIndex() {
               ]);
               break;
             case 'error':
+              ensureNewAssistantAfterTools();
               updateAssistant((m) => ({
                 ...m,
                 content: m.content + `\n\n오류: ${data.message || '알 수 없는 오류'}`,
@@ -172,6 +188,7 @@ export default function ChatIndex() {
           setIsStreaming(false);
         },
         (err) => {
+          ensureNewAssistantAfterTools();
           updateAssistant((m) => ({
             ...m,
             content: m.content + `\n\n연결 오류: ${err.message}`,
