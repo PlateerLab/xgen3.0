@@ -287,12 +287,48 @@ docker compose -f docker-compose.dev.yml --profile frontend up -d --build xgen-f
 - `stats.totalTools` NaN 수정
 - 설정 페이지 (`/settings`) 신규 생성 — 서비스 상태, 도구 목록, MCP, 환경정보
 
+### 관찰 가능성 — Trace / 실행 이력 UI ✅
+
+| 항목 | 내용 | 상태 |
+|------|------|------|
+| Trace 목록 페이지 | `/trace` — 카드형 목록, 페이지네이션, step 배지 | ✅ |
+| Trace 상세 페이지 | `/trace/[traceId]` — 실제 데이터 연결 (데모 폴백 제거) | ✅ |
+| 실행 이력 페이지 | `/history` — 테이블형, 에이전트 필터, Trace 링크 | ✅ |
+| Sidebar 메뉴 | "실행 이력" 추가 (FiClock 아이콘) | ✅ |
+| API URL 수정 | `listTraces`, `getTrace` 잘못된 URL → 실제 백엔드 경로 연결 | ✅ |
+| Trace step 기록 | Agent Core에서 Think/Tool/Response step을 trace에 자동 기록 | ✅ |
+| 실행 이력 자동 기록 | SSE 실행 완료 시 `history_store.record()` 호출 추가 | ✅ |
+| 백엔드→프론트 필드 보정 | `normalizeTrace()` — `start_time`→`timestamp`, `duration_ms`→`total_duration_ms` | ✅ |
+
+### Mode A: 에이전트 없이 바로 대화 ✅
+
+plan.md의 핵심 비전 구현 — "하나의 대화창에서 AI가 직접 agent를 개발·실행"
+
+| 항목 | 내용 | 상태 |
+|------|------|------|
+| 에이전트 관리 도구 | `src/tools/builtin/agent_mgmt.py` — create/list/get/update/delete_agent + list_available_tools (6개) | ✅ |
+| graph-tool-call 항상 활성 | 임계값 15 → 0 변경, 도구 수 무관하게 항상 검색 모드 | ✅ |
+| 메타 에이전트 불필요 | 별도 프롬프트 없이 graph search가 `create_agent` 등 자동 탐색 | ✅ |
+| `/chat` 바로 대화 | 에이전트 선택 없이 default로 즉시 대화 시작 | ✅ |
+| 대화 이력 표시 | `/chat` 웰컴 화면에 최근 대화 5건 + 빠른 프롬프트 4개 | ✅ |
+| DB 에이전트 로드 | `_create_agent`에서 agent_store.load() → system_prompt/model/approval 자동 적용 | ✅ |
+| 총 도구 40개 | 기존 34 + 에이전트 관리 6개 | ✅ |
+
+**동작 흐름:**
+```
+사용자: "주문 조회 에이전트 만들어줘"
+  → graph-tool-call이 create_agent 도구 검색
+  → LLM이 list_available_tools → create_agent 순서로 호출
+  → DB에 에이전트 정의 저장
+  → 사용자에게 결과 보고
+```
+
 ---
 
 ## 다음 진행 순서
 
-### Step 1: xgen-core 풀스택 연동 ← 현재 여기
-- docker-compose.yml에 xgen-core 추가 (또는 외부 연결)
+### Step 1: xgen-core 풀스택 연동
+- docker-compose.yml에 xgen-core 추가 (완료)
 - core_db_find 등 실제 DB 조회 end-to-end 테스트
 
 ### Step 2: MCP Station 흡수 테스트
@@ -334,8 +370,8 @@ xgen3.0/
 │   │   ├── decorator.py
 │   │   ├── registry.py
 │   │   ├── generator.py
-│   │   ├── graph_tool.py        ← 실제 graph-tool-call 패키지 래핑
-│   │   └── builtin/ (http, db, file)
+│   │   ├── graph_tool.py        ← 실제 graph-tool-call 패키지 래핑 (항상 활성)
+│   │   └── builtin/ (http, db, file, xgen_core, xgen_documents, xgen_utils, agent_mgmt)
 │   ├── sandbox/
 │   │   ├── docker.py
 │   │   └── runner.py
@@ -356,10 +392,13 @@ xgen3.0/
 │   └── src/app/
 │       ├── layout.tsx           (Sidebar + Content)
 │       ├── page.tsx             (/ 대시보드)
-│       ├── chat/[agentId]/      (★ 핵심 대화 UI)
-│       ├── trace/[traceId]/     (읽기 전용 Flow Viewer)
-│       ├── agents/[agentId]/    (Agent 상세)
-│       └── _common/             (디자인 시스템, API, 컴포넌트)
+│       ├── chat/               (★ 바로 대화 시작 — default 에이전트)
+│       ├── chat/[agentId]/     (특정 에이전트 대화 UI)
+│       ├── trace/              (Trace 목록)
+│       ├── trace/[traceId]/    (Trace 상세 — 실행 흐름 타임라인)
+│       ├── history/            (실행 이력 — 테이블형)
+│       ├── agents/[agentId]/   (Agent 상세)
+│       └── _common/            (디자인 시스템, API, 컴포넌트)
 ├── repos/                       ← xgen2.0 클론 (로컬 실험용)
 │   ├── xgen-infra/              ← 배포 설정 수정됨
 │   ├── xgen-workflow/

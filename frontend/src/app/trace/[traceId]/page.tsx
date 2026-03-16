@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import type { Trace } from '../../_common/types';
 import { getTrace } from '../../_common/api/agentAPI';
-import { formatDuration } from '../../_common/utils/formatTime';
+import { formatDuration, formatRelativeTime } from '../../_common/utils/formatTime';
 import TraceTimeline from '../../_common/components/TraceTimeline';
 import styles from './page.module.scss';
 import {
@@ -23,55 +23,15 @@ export default function TracePage() {
   const { traceId } = useParams<{ traceId: string }>();
   const [trace, setTrace] = useState<Trace | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [expandedStep, setExpandedStep] = useState<number | null>(null);
 
   useEffect(() => {
+    setLoading(true);
+    setError(null);
     getTrace(traceId)
       .then(setTrace)
-      .catch(() => {
-        // Demo data
-        setTrace({
-          trace_id: traceId,
-          session_id: 'session-demo',
-          agent: 'customer-support',
-          timestamp: new Date().toISOString(),
-          total_duration_ms: 3465,
-          steps: [
-            {
-              type: 'think',
-              timestamp: new Date().toISOString(),
-              duration_ms: 2100,
-              model: 'claude-sonnet',
-              input_tokens: 1200,
-              output_tokens: 350,
-            },
-            {
-              type: 'tool_call',
-              timestamp: new Date().toISOString(),
-              duration_ms: 45,
-              tool: 'query_customer',
-              params: { customer_id: 'CUST-001' },
-              result: { customer: { name: '홍길동', email: 'hong@example.com' } },
-              success: true,
-            },
-            {
-              type: 'tool_call',
-              timestamp: new Date().toISOString(),
-              duration_ms: 120,
-              tool: 'query_orders',
-              params: { customer_id: 'CUST-001' },
-              result: { orders: [{ id: 'ORD-001', total: 35000 }] },
-              success: true,
-            },
-            {
-              type: 'response',
-              timestamp: new Date().toISOString(),
-              duration_ms: 1200,
-              text: '고객님의 최근 주문은 ORD-001 (35,000원) 입니다.',
-            },
-          ],
-        });
-      })
+      .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, [traceId]);
 
@@ -83,9 +43,14 @@ export default function TracePage() {
     );
   }
 
-  if (!trace) {
+  if (error || !trace) {
     return (
-      <div className={styles.error}>Trace를 찾을 수 없습니다.</div>
+      <div className={styles.error}>
+        {error || 'Trace를 찾을 수 없습니다.'}
+        <Link href="/trace" style={{ color: '#2563eb', marginTop: '1rem', fontSize: '0.875rem' }}>
+          목록으로 돌아가기
+        </Link>
+      </div>
     );
   }
 
@@ -109,7 +74,7 @@ export default function TracePage() {
           <div className={styles.headerMeta}>
             <span><FiBox size={12} /> {trace.agent}</span>
             <span><FiClock size={12} /> {formatDuration(trace.total_duration_ms)}</span>
-            <span>{new Date(trace.timestamp).toLocaleString('ko-KR')}</span>
+            <span>{formatRelativeTime(trace.timestamp)} ({new Date(trace.timestamp).toLocaleString('ko-KR')})</span>
           </div>
         </div>
       </header>

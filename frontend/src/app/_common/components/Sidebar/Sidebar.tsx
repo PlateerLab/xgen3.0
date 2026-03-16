@@ -10,6 +10,7 @@ import {
   FiBox,
   FiActivity,
   FiSettings,
+  FiClock,
   FiChevronLeft,
   FiChevronRight,
   FiPlus,
@@ -27,6 +28,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: '대화', href: '/chat', icon: <FiMessageSquare size={20} />, match: '^/chat' },
   { label: '에이전트', href: '/agents', icon: <FiBox size={20} />, match: '^/agents' },
   { label: '트레이스', href: '/trace', icon: <FiActivity size={20} />, match: '^/trace' },
+  { label: '실행 이력', href: '/history', icon: <FiClock size={20} />, match: '^/history' },
   { label: '설정', href: '/settings', icon: <FiSettings size={20} />, match: '^/settings' },
 ];
 

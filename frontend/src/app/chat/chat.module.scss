@@ -1,18 +1,54 @@
 @use '@/app/_common/_variables.scss' as *;
 
-// Agent select page
-.selectPage {
+// === Chat Page (reuses agentId page patterns) ===
+
+.chatPage {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  background: $background-light;
+  flex-direction: column;
+  height: 100vh;
 }
 
-.selectContent {
+// Header
+.chatHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $spacing-md $spacing-xl;
+  border-bottom: 1px solid $border-color;
+  background: $white;
+  position: sticky;
+  top: 0;
+  z-index: $z-header;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  color: $primary-blue;
+}
+
+.headerTitle {
+  font-weight: 600;
+  font-size: $font-size-base;
+  color: $text-primary;
+}
+
+// Messages
+.messagesArea {
+  flex: 1;
+  overflow-y: auto;
+  padding: $spacing-lg 0;
+}
+
+// === Welcome State ===
+.welcomeState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 200px);
   text-align: center;
-  max-width: 560px;
-  width: 100%;
   padding: $spacing-2xl;
 
   h1 {
@@ -24,149 +60,254 @@
   }
 }
 
-.selectIcon {
-  width: 72px;
-  height: 72px;
+.welcomeIcon {
+  width: 80px;
+  height: 80px;
   border-radius: $radius-xl;
-  background: linear-gradient(135deg, $blue-100, rgba($primary-purple, 0.12));
+  background: linear-gradient(135deg, $blue-50, rgba($primary-purple, 0.08));
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto;
   color: $primary-blue;
 }
 
-.selectDesc {
-  color: $text-secondary;
+.welcomeDesc {
   font-size: $font-size-sm;
-  line-height: 1.6;
+  color: $text-secondary;
+  max-width: 420px;
+  margin-bottom: $spacing-xl;
+}
+
+// Quick Prompts
+.quickPrompts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $spacing-sm;
+  max-width: 520px;
+  width: 100%;
   margin-bottom: $spacing-2xl;
 }
 
-.loadingState {
+.quickBtn {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: $spacing-md;
-  color: $text-muted;
-  padding: $spacing-2xl 0;
+  gap: $spacing-sm;
+  padding: $spacing-md;
+  background: $white;
+  border: 1px solid $border-color;
+  border-radius: $radius-lg;
+  text-align: left;
+  font-size: $font-size-sm;
+  color: $text-secondary;
+  cursor: pointer;
+  transition: $transition-fast;
 
-  @keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+  svg {
+    color: $primary-blue;
+    flex-shrink: 0;
+  }
+
+  &:hover {
+    border-color: $blue-200;
+    background: $blue-50;
+    color: $text-primary;
   }
 }
 
-.spinIcon {
-  animation: spin 1.2s linear infinite;
+// Recent History
+.recentSection {
+  max-width: 520px;
+  width: 100%;
+  text-align: left;
+  margin-bottom: $spacing-xl;
 }
 
-.emptyAgents {
+.recentTitle {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  font-size: $font-size-sm;
+  font-weight: 600;
+  color: $text-muted;
+  margin-bottom: $spacing-sm;
+}
+
+.recentList {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: $spacing-md;
-  color: $text-muted;
-  padding: $spacing-2xl 0;
+  gap: 2px;
+}
 
-  p {
-    font-size: $font-size-sm;
+.recentItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $spacing-sm $spacing-md;
+  border-radius: $radius-md;
+  cursor: pointer;
+  transition: $transition-fast;
+
+  &:hover {
+    background: $gray-50;
+  }
+}
+
+.recentInput {
+  font-size: $font-size-sm;
+  color: $text-primary;
+  flex: 1;
+  @include truncate;
+  margin-right: $spacing-md;
+}
+
+.recentMeta {
+  font-size: $font-size-xs;
+  color: $text-muted;
+  white-space: nowrap;
+}
+
+// Agents Section
+.agentsSection {
+  max-width: 520px;
+  width: 100%;
+}
+
+.agentsToggle {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  font-size: $font-size-sm;
+  color: $text-muted;
+  padding: $spacing-sm 0;
+  cursor: pointer;
+  transition: $transition-fast;
+
+  &:hover {
+    color: $text-primary;
   }
 }
 
 .agentList {
   display: flex;
   flex-direction: column;
-  gap: $spacing-sm;
-  text-align: left;
+  gap: $spacing-xs;
+  margin-top: $spacing-sm;
 }
 
 .agentOption {
   display: flex;
   align-items: center;
   gap: $spacing-md;
-  padding: $spacing-md $spacing-lg;
+  padding: $spacing-md;
   background: $white;
   border: 1px solid $border-color;
   border-radius: $radius-lg;
   transition: $transition-fast;
+  text-decoration: none;
+  color: inherit;
+
+  svg {
+    color: $gray-400;
+    flex-shrink: 0;
+  }
 
   &:hover {
     border-color: $blue-200;
     background: $blue-50;
-    transform: translateY(-1px);
-    box-shadow: $shadow-sm;
   }
 }
 
-.agentOptionIcon {
-  width: 44px;
-  height: 44px;
-  background: $gray-100;
-  border-radius: $radius-md;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: $gray-600;
-  flex-shrink: 0;
-}
-
 .agentOptionInfo {
-  flex: 1;
-  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
 }
 
 .agentOptionName {
   font-weight: 600;
+  font-size: $font-size-sm;
   color: $text-primary;
-  font-size: $font-size-base;
 }
 
 .agentOptionDesc {
-  font-size: $font-size-sm;
+  font-size: $font-size-xs;
   color: $text-secondary;
-  margin-top: 2px;
 }
 
-.agentOptionMeta {
+// === Input Area (same as agentId page) ===
+.inputArea {
+  padding: $spacing-md $spacing-xl $spacing-lg;
+  background: $white;
+  border-top: 1px solid $border-color;
+}
+
+.inputContainer {
   display: flex;
-  align-items: center;
-  gap: $spacing-md;
-  margin-top: $spacing-xs;
-}
-
-.agentMetaItem {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: $font-size-xs;
-  color: $text-muted;
-}
-
-.agentStatus {
-  font-size: $font-size-xs;
-  padding: 1px $spacing-sm;
-  border-radius: $radius-full;
-  font-weight: 500;
-}
-
-.statusActive {
-  color: $green-700;
-  background: rgba($success, 0.1);
-}
-
-.statusInactive {
-  color: $gray-500;
-  background: $gray-100;
-}
-
-.agentOptionArrow {
-  color: $text-muted;
-  flex-shrink: 0;
+  align-items: flex-end;
+  gap: $spacing-sm;
+  max-width: $chat-max-width;
+  margin: 0 auto;
+  padding: $spacing-sm $spacing-md;
+  background: $gray-50;
+  border: 1px solid $border-color;
+  border-radius: $radius-xl;
   transition: $transition-fast;
 
-  .agentOption:hover & {
-    color: $primary-blue;
-    transform: translateX(2px);
+  &:focus-within {
+    border-color: $primary-blue;
+    background: $white;
+    box-shadow: 0 0 0 3px rgba($primary-blue, 0.1);
+  }
+}
+
+.textarea {
+  flex: 1;
+  border: none;
+  background: transparent;
+  resize: none;
+  outline: none;
+  padding: $spacing-sm 0;
+  font-size: $font-size-base;
+  line-height: 1.5;
+  max-height: 200px;
+  min-height: 24px;
+
+  &::placeholder {
+    color: $text-muted;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+  }
+}
+
+.sendBtn {
+  padding: $spacing-sm;
+  color: $white;
+  background: $primary-blue;
+  border-radius: $radius-md;
+  transition: $transition-fast;
+  flex-shrink: 0;
+
+  &:hover:not(:disabled) {
+    background: $blue-700;
+  }
+
+  &:disabled {
+    background: $gray-300;
+    cursor: not-allowed;
+  }
+}
+
+.stopBtn {
+  padding: $spacing-sm;
+  color: $error;
+  border-radius: $radius-md;
+  transition: $transition-fast;
+  flex-shrink: 0;
+
+  &:hover {
+    background: rgba($error, 0.1);
   }
 }

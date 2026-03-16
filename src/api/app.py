@@ -35,6 +35,7 @@ async def lifespan(app: FastAPI):
     from src.tools.builtin import http, file, db  # noqa: F401
     from src.tools.builtin import xgen_core, xgen_documents  # noqa: F401
     from src.tools.builtin import xgen_utils  # noqa: F401
+    from src.tools.builtin import agent_mgmt  # noqa: F401 — 에이전트 관리 도구
     from src.sandbox import runner  # noqa: F401 — execute_code, execute_code_with_test
     from src.tools.decorator import get_registered_tools
 
@@ -59,7 +60,14 @@ async def lifespan(app: FastAPI):
         await agent_store.initialize()
         await state_store.initialize()
         await history_store.initialize()
+        # 에이전트 관리 도구에 store 참조 주입
+        from src.tools.builtin.agent_mgmt import set_agent_store
+        set_agent_store(agent_store)
         logging.getLogger(__name__).info("DB Store 초기화 완료")
+
+    # 에이전트 관리 도구에 tool_registry 주입 (DB 유무와 무관)
+    from src.tools.builtin.agent_mgmt import set_tool_registry
+    set_tool_registry(tool_registry)
 
     # 앱 state에 등록
     app.state.tool_registry = tool_registry

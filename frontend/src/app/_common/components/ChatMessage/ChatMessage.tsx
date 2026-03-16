@@ -161,7 +161,7 @@ export default function ChatMessage({ message, onApprove }: ChatMessageProps) {
             {tr.error && (
               <div className={styles.toolErrorText}>{tr.error}</div>
             )}
-            {tr.success && tr.result && (
+            {tr.success && tr.result != null && (
               <details className={styles.toolResultDetail}>
                 <summary>결과 보기</summary>
                 <pre className={styles.toolResultPre}>

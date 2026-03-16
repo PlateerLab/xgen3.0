@@ -135,6 +135,20 @@ export interface SSEEvent {
   data: Record<string, unknown>;
 }
 
+// --- History ---
+export interface HistoryEntry {
+  id: number;
+  trace_id: string;
+  session_id: string;
+  agent_name: string;
+  user_input: string;
+  result: string;
+  trace_data: Record<string, unknown>;
+  duration_ms: number;
+  status: 'completed' | 'failed' | 'cancelled';
+  created_at: string;
+}
+
 // --- API Responses ---
 export interface ApiResponse<T> {
   success: boolean;

@@ -1,5 +1,36 @@
 @use '@/app/_common/_variables.scss' as *;
 
+// Loading / Error / Empty
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid $gray-200;
+  border-top-color: $primary-blue;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.errorPage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  gap: $spacing-md;
+  color: $error;
+}
+
 .emptyPage {
   display: flex;
   flex-direction: column;
@@ -29,4 +60,181 @@
 .hint {
   font-size: $font-size-xs !important;
   color: $text-muted !important;
+}
+
+// Page
+.page {
+  min-height: 100vh;
+  padding: $spacing-2xl;
+  max-width: 1000px;
+}
+
+// Header
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-xl;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+
+  h1 {
+    font-size: $font-size-2xl;
+    font-weight: 700;
+    color: $text-primary;
+  }
+
+  svg {
+    color: $primary-blue;
+  }
+}
+
+.count {
+  font-size: $font-size-sm;
+  color: $text-muted;
+  background: $gray-100;
+  padding: $spacing-xs $spacing-md;
+  border-radius: $radius-full;
+}
+
+// Trace List
+.traceList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.traceCard {
+  display: block;
+  background: $white;
+  border: 1px solid $border-color;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  text-decoration: none;
+  color: inherit;
+  @include card-hover;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-sm;
+}
+
+.traceId {
+  font-size: $font-size-sm;
+  font-weight: 600;
+  font-family: 'Fira Code', monospace;
+  color: $text-primary;
+}
+
+.duration {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: $font-size-xs;
+  font-family: 'Fira Code', monospace;
+  color: $text-muted;
+}
+
+.cardBody {
+  display: flex;
+  align-items: center;
+  gap: $spacing-lg;
+  margin-bottom: $spacing-sm;
+}
+
+.agentBadge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: $font-size-xs;
+  color: $primary-blue;
+  background: $blue-50;
+  padding: 2px $spacing-sm;
+  border-radius: $radius-sm;
+  font-weight: 500;
+}
+
+.stepBadges {
+  display: flex;
+  gap: $spacing-xs;
+}
+
+.stepBadge {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: $font-size-xs;
+  padding: 2px $spacing-sm;
+  border-radius: $radius-sm;
+  font-weight: 500;
+  color: $white;
+
+  &.think { background: $trace-think; }
+  &.tool_call { background: $trace-tool; }
+  &.response { background: $trace-response; }
+  &.error { background: $trace-error; }
+  &.approval { background: $warning; }
+}
+
+.cardFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.timestamp {
+  font-size: $font-size-xs;
+  color: $text-muted;
+}
+
+.stepCount {
+  font-size: $font-size-xs;
+  color: $text-secondary;
+}
+
+// Pagination
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: $spacing-md;
+  margin-top: $spacing-xl;
+}
+
+.pageBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: $radius-md;
+  border: 1px solid $border-color;
+  background: $white;
+  color: $text-secondary;
+  cursor: pointer;
+  transition: $transition-fast;
+
+  &:hover:not(:disabled) {
+    background: $gray-50;
+    color: $text-primary;
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+.pageInfo {
+  font-size: $font-size-sm;
+  color: $text-secondary;
+  min-width: 60px;
+  text-align: center;
 }

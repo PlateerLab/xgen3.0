@@ -23,6 +23,7 @@ from src.api.models import (
     ApprovalActionRequest,
     GenerateToolRequest,
 )
+from src.store.history import HistoryStore
 from src.api.sse_adapter import agent_event_to_sse, make_deploy_response, make_envelope_response
 
 logger = logging.getLogger(__name__)
@@ -40,21 +41,36 @@ def _get_model_client(model: str | None = None) -> ModelClient:
     return ModelClient(base_url=base_url, api_key=api_key, model=model_name)
 
 
-def _create_agent(request: Request, req: WorkflowRequest) -> tuple[Agent, ModelClient]:
+async def _create_agent(request: Request, req: WorkflowRequest) -> tuple[Agent, ModelClient]:
     tool_registry: ToolRegistry = request.app.state.tool_registry
     trace_collector: TraceCollector = request.app.state.trace_collector
     state_store = request.app.state.state_store
+    agent_store = request.app.state.agent_store
 
-    model_client = _get_model_client(req.model)
+    agent_name = req.workflow_name or req.workflow_id or "default"
+    system_prompt = req.system_prompt or ""
+    model = req.model
+    approval_patterns = req.approval_required
+
+    # DB에서 에이전트 정의 로드 시도
+    if agent_store:
+        agent_def = await agent_store.load(agent_name)
+        if agent_def:
+            system_prompt = system_prompt or agent_def.get("system_prompt", "")
+            model = model or agent_def.get("model")
+            if not approval_patterns:
+                approval_patterns = agent_def.get("approval_required")
+
+    model_client = _get_model_client(model)
 
     agent = Agent(
-        name=req.workflow_name or req.workflow_id or "default",
+        name=agent_name,
         model_client=model_client,
         tool_registry=tool_registry,
-        system_prompt=req.system_prompt or "",
+        system_prompt=system_prompt,
         trace_collector=trace_collector,
         state_store=state_store,
-        approval_patterns=req.approval_required,
+        approval_patterns=approval_patterns,
     )
     return agent, model_client
 
@@ -82,20 +98,32 @@ async def execute_stream(req: WorkflowRequest, request: Request):
       data: {"type": "data", "content": "..."}
       data: {"type": "end", "message": "Stream finished"}
     """
-    agent, model_client = _create_agent(request, req)
+    agent, model_client = await _create_agent(request, req)
+    history_store: HistoryStore | None = request.app.state.history_store
+    trace_collector: TraceCollector = request.app.state.trace_collector
+    _start_time = __import__("time").time()
 
     async def event_generator():
+        result_text = ""
+        status = "completed"
         try:
             async for event in agent.run_stream(
                 req.message,
                 session_id=req.interaction_id,
                 resume=req.resume,
             ):
+                if event.get("type") == "done":
+                    result_text = event.get("data", "")
+                elif event.get("type") == "error":
+                    status = "failed"
+                    result_text = str(event.get("data", {}).get("error", ""))
                 sse_events = agent_event_to_sse(event, skip_detail_log=False)
                 for sse in sse_events:
                     yield sse
         except Exception as e:
             logger.exception("Agent 실행 오류")
+            status = "failed"
+            result_text = str(e)
             yield {
                 "data": json.dumps(
                     {"type": "error", "detail": str(e)}, ensure_ascii=False
@@ -103,6 +131,26 @@ async def execute_stream(req: WorkflowRequest, request: Request):
             }
         finally:
             await model_client.close()
+            # 실행 이력 기록
+            if history_store:
+                duration_ms = (__import__("time").time() - _start_time) * 1000
+                # trace_id 가져오기
+                traces = trace_collector.list_traces(session_id=req.interaction_id)
+                trace_id = traces[-1].trace_id if traces else ""
+                trace_data = traces[-1].to_dict() if traces else {}
+                try:
+                    await history_store.record(
+                        trace_id=trace_id,
+                        session_id=req.interaction_id or "",
+                        agent_name=req.workflow_name or req.workflow_id or "default",
+                        user_input=req.message,
+                        result=result_text if isinstance(result_text, str) else str(result_text),
+                        trace_data=trace_data,
+                        duration_ms=duration_ms,
+                        status=status,
+                    )
+                except Exception:
+                    logger.exception("실행 이력 기록 실패")
 
     return EventSourceResponse(event_generator())
 
@@ -110,7 +158,7 @@ async def execute_stream(req: WorkflowRequest, request: Request):
 @router.post("/api/workflow/execute/based_id/stream/deploy")
 async def execute_stream_deploy(req: WorkflowRequest, request: Request):
     """Deploy 모드 SSE — 세부 로그(log, node_status, tool) 미전송."""
-    agent, model_client = _create_agent(request, req)
+    agent, model_client = await _create_agent(request, req)
 
     async def event_generator():
         try:
@@ -138,7 +186,7 @@ async def execute_stream_deploy(req: WorkflowRequest, request: Request):
 @router.post("/api/workflow/execute/deploy/stream")
 async def execute_deploy_stream(req: WorkflowRequest, request: Request):
     """Deploy 전용 API — json/stream 응답 지원."""
-    agent, model_client = _create_agent(request, req)
+    agent, model_client = await _create_agent(request, req)
 
     try:
         if req.response_format == "stream":
@@ -163,7 +211,7 @@ async def execute_deploy_stream(req: WorkflowRequest, request: Request):
 @router.post("/api/workflow/execute/deploy/result")
 async def execute_deploy_result(req: WorkflowRequest, request: Request):
     """Java Client용 Envelope 응답."""
-    agent, model_client = _create_agent(request, req)
+    agent, model_client = await _create_agent(request, req)
 
     try:
         result = await agent.run(req.message, session_id=req.interaction_id)
@@ -207,7 +255,7 @@ async def execution_cleanup():
 
 @router.post("/api/agent/run")
 async def agent_run(req: WorkflowRequest, request: Request):
-    agent, model_client = _create_agent(request, req)
+    agent, model_client = await _create_agent(request, req)
     try:
         result = await agent.run(req.message, session_id=req.interaction_id, resume=req.resume)
         return {"result": result, "interaction_id": req.interaction_id}

@@ -39,27 +39,10 @@ export default function AgentDetailPage() {
         updated_at: new Date().toISOString(),
         status: 'active' as const,
       })),
-      listTraces(agentId, 10).catch(() => [
-        {
-          trace_id: 'tr-demo-1',
-          session_id: 's-1',
-          agent: agentId,
-          timestamp: new Date().toISOString(),
-          total_duration_ms: 3465,
-          steps: [],
-        },
-        {
-          trace_id: 'tr-demo-2',
-          session_id: 's-2',
-          agent: agentId,
-          timestamp: new Date(Date.now() - 3600000).toISOString(),
-          total_duration_ms: 1230,
-          steps: [],
-        },
-      ]),
-    ]).then(([agentData, tracesData]) => {
+      listTraces(1, 10, agentId).catch(() => ({ traces: [], total: 0, page: 1, page_size: 10 })),
+    ]).then(([agentData, tracesRes]) => {
       setAgent(agentData);
-      setTraces(tracesData);
+      setTraces(tracesRes.traces ?? []);
       setLoading(false);
     });
   }, [agentId]);

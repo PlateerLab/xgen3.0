@@ -322,17 +322,31 @@ class Agent:
                 "tools_count": len(tools_schema) if tools_schema else 0,
             }}
 
+            _think_start = time.time()
             try:
                 response = await self.model_client.generate(
                     messages=self.context.to_messages(),
                     tools=tools_schema if tools_schema else None,
                 )
             except Exception as e:
+                self.trace.add_step(trace_id, StepType.ERROR, {"error": str(e)})
                 await self._save_state(session_id)
                 yield {"type": "error", "data": {"error": str(e), "resumable": True}}
                 return
+            _think_ms = (time.time() - _think_start) * 1000
+
+            self.trace.add_step(trace_id, StepType.THINK, {
+                "duration_ms": round(_think_ms),
+                "model": self.model_client.model,
+                "input_tokens": getattr(response, "input_tokens", None),
+                "output_tokens": getattr(response, "output_tokens", None),
+            })
 
             if not response.has_tool_calls:
+                self.trace.add_step(trace_id, StepType.RESPONSE, {
+                    "text": response.text or "",
+                    "duration_ms": round(_think_ms),
+                })
                 self.context.add_assistant(content=response.text)
                 self.trace.end_trace(trace_id)
                 await self._save_state(session_id)
@@ -377,6 +391,7 @@ class Agent:
 
                 yield {"type": "tool_call", "data": {"name": tc.name, "arguments": tc.arguments}}
 
+                _tool_start = time.time()
                 try:
                     result = await self.tool_registry.execute(
                         {"name": tc.name, "arguments": tc.arguments}
@@ -384,12 +399,21 @@ class Agent:
                 except Exception as e:
                     await self._save_state(session_id)
                     result = {"name": tc.name, "error": str(e)}
+                _tool_ms = (time.time() - _tool_start) * 1000
 
                 result_str = json.dumps(
                     result.get("result", result.get("error", "")),
                     ensure_ascii=False, default=str,
                 )
                 self.context.add_tool_result(tc.id, tc.name, result_str)
+
+                self.trace.add_step(trace_id, StepType.TOOL_CALL, {
+                    "tool": tc.name,
+                    "params": tc.arguments,
+                    "result": result.get("result", result.get("error")),
+                    "success": "error" not in result,
+                    "duration_ms": round(_tool_ms),
+                })
 
                 # graph-tool-call 호출 이력 기록
                 if self.graph_tool_manager:

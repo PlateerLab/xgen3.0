@@ -24,7 +24,8 @@ from src.tools.registry import ToolRegistry
 logger = logging.getLogger(__name__)
 
 # 도구 수가 이 값 이상이면 자동으로 graph-tool-call 검색 모드 활성화
-GRAPH_SEARCH_THRESHOLD = 15
+# 0으로 설정하면 항상 graph search 사용
+GRAPH_SEARCH_THRESHOLD = 0
 
 
 @dataclass

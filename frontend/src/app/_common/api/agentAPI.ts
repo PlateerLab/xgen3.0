@@ -1,12 +1,12 @@
 import { apiFetch, apiSSE } from './client';
-import type { Agent, AgentSummary, Session, Trace, SSEEvent } from '../types';
+import type { Agent, AgentSummary, Session, Trace, SSEEvent, HistoryEntry } from '../types';
 
 // --- Agent CRUD ---
 // /api/workflow/* 하위호환 경로 사용
 
 export async function listAgents(): Promise<AgentSummary[]> {
-  const res = await apiFetch('/api/workflow/list');
-  const agents = res.agents ?? res;
+  const res = await apiFetch<Record<string, unknown>>('/api/workflow/list');
+  const agents = (res.agents ?? res) as Record<string, unknown>[];
   if (!Array.isArray(agents)) return [];
   return agents.map((a: Record<string, unknown>) => ({
     id: String(a.id ?? a.workflow_id ?? ''),
@@ -144,15 +144,51 @@ export async function respondApproval(
 
 // --- Trace ---
 
+/** 백엔드 Trace 응답 → 프론트 Trace 타입 보정 (start_time → timestamp 등) */
+function normalizeTrace(raw: Record<string, unknown>): Trace {
+  const startTime = raw.start_time as number | undefined;
+  return {
+    ...raw,
+    steps: (raw.steps as Trace['steps']) ?? [],
+    total_duration_ms: (raw.total_duration_ms ?? raw.duration_ms ?? 0) as number,
+    timestamp: (raw.timestamp ?? (startTime ? new Date(startTime * 1000).toISOString() : new Date().toISOString())) as string,
+  } as Trace;
+}
+
 export async function getTrace(traceId: string): Promise<Trace> {
-  return apiFetch(`/api/workflow/trace/${traceId}`);
+  const raw = await apiFetch<Record<string, unknown>>(`/api/workflow/trace/detail/${traceId}`);
+  return normalizeTrace(raw);
 }
 
 export async function listTraces(
-  agentId: string,
-  limit = 20
+  page = 1,
+  pageSize = 20,
+  agentId?: string,
+): Promise<{ traces: Trace[]; total: number; page: number; page_size: number }> {
+  const params = new URLSearchParams({ page: String(page), page_size: String(pageSize) });
+  if (agentId) params.set('workflow_id', agentId);
+  const res = await apiFetch<{ traces: Record<string, unknown>[]; total: number; page: number; page_size: number }>(`/api/workflow/trace/list?${params}`);
+  return { ...res, traces: (res.traces ?? []).map(normalizeTrace) };
+}
+
+export async function listTracesBySession(
+  sessionId: string,
 ): Promise<Trace[]> {
-  return apiFetch(`/api/workflow/traces?agent_id=${agentId}&limit=${limit}`);
+  const res = await apiFetch<{ traces: Trace[] }>(`/api/workflow/trace/by-interaction/${sessionId}`);
+  return res.traces;
+}
+
+// --- History ---
+
+export async function listHistory(
+  agentName?: string,
+  sessionId?: string,
+  limit = 50,
+): Promise<{ history: HistoryEntry[]; count: number }> {
+  const params = new URLSearchParams({ limit: String(limit) });
+  if (agentName) params.set('agent_name', agentName);
+  if (sessionId) params.set('session_id', sessionId);
+  return apiFetch(`/api/history?${params}`);
 }
 
 // --- Tools ---
