@@ -104,6 +104,7 @@ def _cmd_tools():
     from src.tools.registry import ToolRegistry
     from src.tools.builtin import http, file, db  # noqa: F401
     from src.tools.builtin import xgen_core, xgen_documents  # noqa: F401
+    from src.tools.builtin import xgen_utils  # noqa: F401
     from src.sandbox import runner  # noqa: F401
     from src.tools.decorator import get_registered_tools
 
@@ -126,6 +127,7 @@ async def _cmd_run(args):
     from src.tools.registry import ToolRegistry
     from src.tools.builtin import http, file, db  # noqa: F401
     from src.tools.builtin import xgen_core, xgen_documents  # noqa: F401
+    from src.tools.builtin import xgen_utils  # noqa: F401
     from src.sandbox import runner  # noqa: F401
     from src.tools.decorator import get_registered_tools
 
