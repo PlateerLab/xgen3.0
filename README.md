@@ -1,4 +1,4 @@
-# XGEN3.0
+# YAMMI
 
 **Conversational AI Agent Runtime Platform** — Build, run, and deploy AI agents through a single chat interface.
 
