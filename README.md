@@ -21,7 +21,7 @@ xgen-agent replaces the traditional visual workflow editor (xgen-workflow) with 
                     xgen-agent (port 8010)
                     ┌─────────────────────────────────┐
                     │  Agent Core (Think→Act→Observe)  │
-                    │  Tool Registry (29 tools)        │
+                    │  Tool Registry (40 tools)        │
                     │  State Store (Checkpointer)      │
                     │  Trace / Log                     │
                     │  Docker Sandbox                  │
@@ -106,15 +106,19 @@ async def query_customer(customer_id: str) -> dict:
 |--------|-------------|
 | `@tool` (Built-in + Custom) | Python functions with decorator. Same format whether AI or human creates them. |
 | `MCP` | External MCP server connections (STDIO + SSE). |
-| `graph-tool-call` | Search-based dynamic loading for large tool sets (auto-activates when >15 tools). |
+| `graph-tool-call` | Search-based dynamic loading. Always active — queries find the right tools from 40+. |
 
-### Registered Tools (29)
+### Registered Tools (40)
 
 **Built-in (7):** http_request, file_read, file_write, file_list, db_query, execute_code, execute_code_with_test
 
 **xgen-core Integration (13):** core_db_tables, core_db_schema, core_db_find, core_db_find_by_id, core_db_insert, core_db_update, core_db_delete, core_db_query, core_config_get, core_config_set, core_config_list, core_config_search, core_auth_headers
 
 **xgen-documents Integration (9):** rag_search, rag_collections, rag_collection_documents, embedding_query, embedding_documents, rerank_documents, document_extract_text, document_generate_metadata, document_supported_types
+
+**Agent Management (6):** create_agent, list_agents, get_agent, update_agent, delete_agent, list_available_tools
+
+**Utility (5):** send_email, read_table_data, write_table_data, ml_inference, run_workflow
 
 ## Agent Definition
 
@@ -140,10 +144,13 @@ approval_required:
 
 The frontend is a **conversation-first UI** built with Next.js 15 + React 19:
 
-- **Chat UI** (`/chat/[agentId]`) — SSE streaming with Think blocks, tool call visualization, and markdown rendering
+- **Chat** (`/chat`) — Start a conversation immediately. No agent selection needed. AI creates agents on demand.
+- **Chat with Agent** (`/chat/[agentId]`) — SSE streaming with Think blocks, tool call visualization, approval buttons
 - **Dashboard** (`/`) — Agent overview and quick chat start
 - **Agent Management** (`/agents`) — List, create, and configure agents
-- **Trace Viewer** (`/trace/[traceId]`) — Read-only execution flow viewer
+- **Trace List** (`/trace`) — Paginated trace list with step badges and duration
+- **Trace Detail** (`/trace/[traceId]`) — Read-only execution flow timeline with expandable steps
+- **Execution History** (`/history`) — Full execution log with agent filter and trace links
 - **Settings** (`/settings`) — Service status, tool registry, MCP connections
 
 No visual workflow editor. Modifications happen through conversation.
@@ -169,7 +176,7 @@ xgen-agent/
 │   ├── api/            # FastAPI endpoints + SSE adapter
 │   ├── core/           # Agent Core (master loop, context, planner)
 │   ├── tools/          # Tool registry, @tool decorator, builtins
-│   │   └── builtin/    # http, file, db, xgen_core, xgen_documents
+│   │   └── builtin/    # http, file, db, xgen_core, xgen_documents, agent_mgmt
 │   ├── sandbox/        # Docker code execution
 │   ├── mcp/            # MCP client + bridge
 │   ├── store/          # State, agent definitions, history (PostgreSQL)
@@ -191,6 +198,11 @@ POST /api/workflow/save                          # Save agent definition
 GET  /api/workflow/list                          # List agents
 GET  /api/tools/list                             # List registered tools
 POST /api/tools/search                           # graph-tool-call search
+POST /api/approval/action                        # Approve/reject pending action
+GET  /api/approval/pending                       # List pending approvals
+GET  /api/history                                # Execution history
+GET  /api/workflow/trace/list                    # Trace list (paginated)
+GET  /api/workflow/trace/detail/{trace_id}       # Trace detail
 GET  /health                                     # Health check
 ```
 
@@ -261,7 +273,9 @@ Architecture decisions were informed by analysis of 7 frameworks:
 - [x] Phase 2: AI Development — Docker Sandbox, AI tool generation, Human-in-the-Loop
 - [x] Phase 3: Platform Integration — MCP client, graph-tool-call, Frontend
 - [x] Phase 4: Operations — Permissions, versioning, triggers, config management
-- [ ] Phase 5: Production — OpenTelemetry, Langfuse, dashboard, multi-tenant isolation
+- [x] Phase 4.5: Observability UI — Trace viewer, execution history, approval e2e
+- [x] Phase 4.5: Mode A — Direct chat, agent creation via conversation, graph search always-on
+- [ ] Phase 5: Production — OpenTelemetry, Langfuse, multi-tenant isolation
 
 ## License
 

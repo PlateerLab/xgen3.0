@@ -323,13 +323,49 @@ plan.md의 핵심 비전 구현 — "하나의 대화창에서 AI가 직접 agen
   → 사용자에게 결과 보고
 ```
 
+### Docker Sandbox 복구 ✅
+
+| 항목 | 내용 | 상태 |
+|------|------|------|
+| docker.sock 마운트 | `docker-compose.yml`에 `/var/run/docker.sock` 볼륨 추가 | ✅ |
+| Docker CLI 설치 | Dockerfile에 Docker CLI 설치 스크립트 추가 | ✅ |
+| stdin 방식 실행 | 파일 마운트 대신 stdin으로 코드 전달 (컨테이너 경로 공유 문제 해결) | ✅ |
+| 보안 플래그 호환 | `--no-new-privileges` → `--security-opt no-new-privileges` | ✅ |
+| execute_code 검증 | `print(sum(range(1,11)))` → stdout: "55", exit_code: 0, 328ms | ✅ |
+| execute_code_with_test 검증 | `add(1,2)==3` → tests_passed: true, 409ms | ✅ |
+
+### Human-in-the-Loop e2e 검증 ✅
+
+| 항목 | 내용 | 상태 |
+|------|------|------|
+| _active_agents 등록 | SSE 실행 시 agent 등록, 완료 시 제거 | ✅ |
+| 프론트 API 수정 | `/api/workflow/approval` → `/api/approval/action`, request_id + action 스키마 | ✅ |
+| SSE approval 이벤트 | log 이벤트의 approval 필드 감지 → `approval_required` 변환 | ✅ |
+| ApprovalRequest.request_id | 타입 + SSE 핸들러 + ChatMessage 콜백 전체 연결 | ✅ |
+
+**e2e 테스트 결과:**
+```
+1. SSE 시작 → approval_required (request_id: apr_617ebd75)
+2. GET /api/approval/pending → pending 1건
+3. POST /api/approval/action → approve 성공
+4. 승인 후 db_query 실행 → SELECT 1 → rows: [{?column?: 1}]
+5. LLM 응답 → "결과가 성공적으로 반환되었습니다"
+```
+
+### 에이전트 생성 후 전환 ✅
+
+| 항목 | 내용 | 상태 |
+|------|------|------|
+| ChatMessage 링크 | `create_agent` 성공 시 "에이전트와 대화하기" 링크 자동 표시 | ✅ |
+| 링크 이동 | `/chat/{agentName}`으로 즉시 이동 가능 | ✅ |
+
 ---
 
 ## 다음 진행 순서
 
-### Step 1: xgen-core 풀스택 연동
-- docker-compose.yml에 xgen-core 추가 (완료)
-- core_db_find 등 실제 DB 조회 end-to-end 테스트
+### Step 1: create_tool ↔ ToolGenerator 연결
+- `create_tool` 호출 시 실제 `ToolGenerator` 파이프라인 실행 (코드 생성 → 샌드박스 테스트 → 등록)
+- 현재는 "pending" 반환하고 끝나는 상태
 
 ### Step 2: MCP Station 흡수 테스트
 - xgen-mcp-station이 하는 역할을 xgen-agent 내장 MCP 클라이언트로 대체 가능한지 확인
