@@ -737,6 +737,29 @@ async def graph_tool_stats(request: Request):
     return {"status": "ok", "stats": manager.get_stats()}
 
 
+@router.get("/api/tools/graph/analyze")
+async def graph_tool_analyze(request: Request):
+    """그래프 품질 분석 — 중복, 충돌, 고아 도구, 카테고리 분포."""
+    from src.tools.graph_tool import GraphToolManager
+
+    manager: GraphToolManager | None = getattr(request.app.state, "graph_tool_manager", None)
+    if manager is None:
+        return {"status": "not_initialized"}
+    return {"status": "ok", "report": manager.analyze()}
+
+
+@router.get("/api/tools/graph/duplicates")
+async def graph_tool_duplicates(request: Request, threshold: float = 0.85):
+    """중복 도구 탐지 (5단계 파이프라인)."""
+    from src.tools.graph_tool import GraphToolManager
+
+    manager: GraphToolManager | None = getattr(request.app.state, "graph_tool_manager", None)
+    if manager is None:
+        return {"status": "not_initialized", "duplicates": []}
+    duplicates = manager.find_duplicates(threshold=threshold)
+    return {"status": "ok", "duplicates": duplicates, "count": len(duplicates)}
+
+
 # ═══════════════════════════════════════════════════
 # 세션 관리
 # ═══════════════════════════════════════════════════

@@ -4,8 +4,15 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import type { Message, SSEEvent, Agent } from '../../_common/types';
-import { streamChat, respondApproval, getAgent } from '../../_common/api/agentAPI';
+import { streamChat, respondApproval, getAgent, listHistory as fetchSessionHistory } from '../../_common/api/agentAPI';
 import ChatMessage from '../../_common/components/ChatMessage';
+import {
+  saveSessionId,
+  loadSessionId,
+  saveMessages,
+  loadMessages,
+  historyToMessages,
+} from '../../_common/utils/chatSession';
 import styles from './page.module.scss';
 import {
   FiSend,
@@ -43,11 +50,37 @@ export default function ChatPage() {
   useEffect(() => {
     getAgent(agentId)
       .then(setAgentInfo)
-      .catch(() => {
-        // Fallback: use agentId as name
-        setAgentInfo(null);
-      });
+      .catch(() => setAgentInfo(null));
   }, [agentId]);
+
+  // Restore session from sessionStorage → fallback to backend history
+  useEffect(() => {
+    const cached = loadMessages(agentId);
+    const sid = loadSessionId(agentId);
+    if (cached.length > 0) {
+      setMessages(cached);
+      if (sid) setSessionId(sid);
+      return;
+    }
+    if (sid) {
+      setSessionId(sid);
+      fetchSessionHistory(undefined, sid, 100)
+        .then((res) => {
+          const restored = historyToMessages(res.history ?? []);
+          if (restored.length > 0) setMessages(restored);
+        })
+        .catch(() => {});
+    }
+  }, [agentId]);
+
+  // Persist messages + sessionId to sessionStorage on change
+  useEffect(() => {
+    if (messages.length > 0) saveMessages(agentId, messages);
+  }, [messages, agentId]);
+
+  useEffect(() => {
+    if (sessionId) saveSessionId(agentId, sessionId);
+  }, [sessionId, agentId]);
 
   // Auto-scroll
   useEffect(() => {

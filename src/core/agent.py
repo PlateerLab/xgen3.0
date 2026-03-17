@@ -215,17 +215,28 @@ class Agent:
                         self.context.add_tool_result(tc.id, tc.name, result_str)
                         continue
 
+                # 도구 이름 검증 + 자동 교정
+                actual_name = tc.name
+                actual_args = tc.arguments
+                if self.graph_tool_manager:
+                    validation = self.graph_tool_manager.validate_call(tc.name, tc.arguments)
+                    if validation.get("corrected_name") and validation["corrected_name"] != tc.name:
+                        logger.info("도구 이름 자동 교정: '%s' → '%s'", tc.name, validation["corrected_name"])
+                        actual_name = validation["corrected_name"]
+                    if validation.get("corrected_arguments"):
+                        actual_args = validation["corrected_arguments"]
+
                 # 도구 실행
                 act_start = time.time()
                 try:
                     result = await self.tool_registry.execute(
-                        {"name": tc.name, "arguments": tc.arguments}
+                        {"name": actual_name, "arguments": actual_args}
                     )
                 except Exception as e:
                     # 도구 실행 실패 → 상태 저장 (실패 재개 지원)
-                    logger.error("도구 '%s' 실행 실패: %s", tc.name, e)
+                    logger.error("도구 '%s' 실행 실패: %s", actual_name, e)
                     await self._save_state(session_id)
-                    result = {"name": tc.name, "error": str(e)}
+                    result = {"name": actual_name, "error": str(e)}
 
                 act_duration = (time.time() - act_start) * 1000
 
@@ -389,16 +400,30 @@ class Agent:
                         yield {"type": "approval_rejected", "data": {"request_id": approval_req.request_id}}
                         continue
 
-                yield {"type": "tool_call", "data": {"name": tc.name, "arguments": tc.arguments}}
+                # 도구 이름 검증 + 자동 교정 (graph-tool-call validate)
+                actual_name = tc.name
+                actual_args = tc.arguments
+                if self.graph_tool_manager:
+                    validation = self.graph_tool_manager.validate_call(tc.name, tc.arguments)
+                    if validation.get("corrected_name") and validation["corrected_name"] != tc.name:
+                        logger.info(
+                            "도구 이름 자동 교정: '%s' → '%s'",
+                            tc.name, validation["corrected_name"],
+                        )
+                        actual_name = validation["corrected_name"]
+                    if validation.get("corrected_arguments"):
+                        actual_args = validation["corrected_arguments"]
+
+                yield {"type": "tool_call", "data": {"name": actual_name, "arguments": actual_args}}
 
                 _tool_start = time.time()
                 try:
                     result = await self.tool_registry.execute(
-                        {"name": tc.name, "arguments": tc.arguments}
+                        {"name": actual_name, "arguments": actual_args}
                     )
                 except Exception as e:
                     await self._save_state(session_id)
-                    result = {"name": tc.name, "error": str(e)}
+                    result = {"name": actual_name, "error": str(e)}
                 _tool_ms = (time.time() - _tool_start) * 1000
 
                 result_str = json.dumps(

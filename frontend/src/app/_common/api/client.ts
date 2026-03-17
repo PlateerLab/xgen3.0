@@ -1,4 +1,4 @@
-import { BASE_URL } from './config';
+import { BASE_URL, STREAM_URL } from './config';
 
 interface FetchOptions extends RequestInit {
   timeout?: number;
@@ -45,7 +45,7 @@ export function apiSSE(
 
   (async () => {
     try {
-      const res = await fetch(`${BASE_URL}${path}`, {
+      const res = await fetch(`${STREAM_URL}${path}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),

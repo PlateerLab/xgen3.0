@@ -361,17 +361,80 @@ plan.md의 핵심 비전 구현 — "하나의 대화창에서 AI가 직접 agen
 
 ---
 
+## 금일 진행 사항 (2026-03-17)
+
+### create_tool ↔ ToolGenerator e2e 연결 ✅
+
+plan.md Mode A 핵심 비전 **"AI가 코드 생성 → 샌드박스 테스트 → 등록"** 완성.
+
+| 항목 | 내용 | 상태 |
+|------|------|------|
+| ToolGenerator 주입 | `app.py` startup에서 ModelClient + ToolGenerator 초기화 → `set_tool_generator()` | ✅ |
+| create_tool 실연결 | `create_tool` 호출 → `ToolGenerator.generate()` 실행 (기존 "pending" 반환 제거) | ✅ |
+| 코드+테스트 동시 생성 | LLM 프롬프트에 `python` + `test` 블록 2개 출력 요구, `_extract_code_and_test()` 파싱 | ✅ |
+| 문법 검증 | 샌드박스에서 @tool 모킹 + 코드 로드 → `SYNTAX_OK` 확인 | ✅ |
+| 기능 테스트 | 샌드박스에서 코드+테스트 함께 실행 → `ALL_TESTS_PASSED` assert 검증 | ✅ |
+| 파일 저장 + Registry 등록 | `tools/{name}.py` 저장 → `load_from_file()` → graph-tool-call ingest | ✅ |
+| 전 단계 로깅 | `[ToolGenerator]` 접두사로 생성→검증→테스트→저장→등록 전 과정 INFO/ERROR 로그 | ✅ |
+
+**e2e 검증 결과:**
+```
+사용자: "피보나치 수열의 n번째 값을 구하는 도구를 만들어줘"
+  → LLM이 코드(532자) + 테스트(591자) 생성
+  → 문법 검증 통과 ✓
+  → 기능 테스트: fibonacci(0)=0, fibonacci(1)=1, fibonacci(5)=5, fibonacci(10)=55 → ALL_TESTS_PASSED ✓
+  → tools/fibonacci.py 저장 → Registry 등록
+  → 이후 "fibonacci(10) 구해줘" → {"fibonacci": 55} 즉시 실행
+```
+
+### graph-tool-call 고급 기능 적용 ✅
+
+| 기능 | 내용 | 상태 |
+|------|------|------|
+| `auto_organize()` | startup 시 41개 도구 자동 분류 → 16개 도메인, 36개 카테고리 | ✅ |
+| `validate_tool_call()` | Agent Core에서 도구 이름 오타 fuzzy matching 자동 교정 | ✅ |
+| `analyze()` API | `GET /api/tools/graph/analyze` — 중복/충돌/고아/카테고리 리포트 | ✅ |
+| `find_duplicates()` API | `GET /api/tools/graph/duplicates` — 5단계 파이프라인 중복 탐지 | ✅ |
+| GraphToolManager startup 초기화 | `app.py`에서 바로 초기화 → `app.state.graph_tool_manager` 등록 | ✅ |
+
+### 프론트엔드 API 프록시 수정 ✅
+
+| 항목 | 내용 | 상태 |
+|------|------|------|
+| REST/SSE 분리 | `BASE_URL=''`(프록시) + `STREAM_URL=hostname:8010`(직접) | ✅ |
+| next.config.ts | `/api/history`, `/api/approval/*`, `/api/sessions/*` rewrite 추가 | ✅ |
+| NEXT_PUBLIC_BACKEND_URL 제거 | Turbopack 컴파일타임 인라인 문제 해결 | ✅ |
+
+### 대화 이력 유지 (세션 복원) ✅
+
+| 항목 | 내용 | 상태 |
+|------|------|------|
+| `chatSession.ts` 신규 | sessionStorage에 sessionId + messages 저장/복원 | ✅ |
+| `historyToMessages()` | 백엔드 HistoryEntry → Message[] 변환 (도구 호출 포함) | ✅ |
+| `/chat` 복원 | 페이지 마운트 → sessionStorage → fallback: 백엔드 history API | ✅ |
+| `/chat/[agentId]` 복원 | agentId별 독립 세션 관리 | ✅ |
+| Hydration 에러 수정 | SSR/CSR HTML 불일치 → useEffect에서만 복원 | ✅ |
+
+### 기타 수정
+
+| 항목 | 내용 | 상태 |
+|------|------|------|
+| test_graph_tool.py | threshold=0 변경에 맞게 테스트 수정 (기존 2개 실패 해소) | ✅ |
+| 총 테스트 | 132 passed, 0 failed (0.98s) | ✅ |
+
+---
+
 ## 다음 진행 순서
 
-### Step 1: create_tool ↔ ToolGenerator 연결
-- `create_tool` 호출 시 실제 `ToolGenerator` 파이프라인 실행 (코드 생성 → 샌드박스 테스트 → 등록)
-- 현재는 "pending" 반환하고 끝나는 상태
-
-### Step 2: MCP Station 흡수 테스트
+### Step 1: MCP Station 흡수 테스트
 - xgen-mcp-station이 하는 역할을 xgen-agent 내장 MCP 클라이언트로 대체 가능한지 확인
 
-### Step 3: API 경로 마이그레이션 (선택)
+### Step 2: API 경로 마이그레이션 (선택)
 - `/api/workflow/*` → `/api/agent/*` 점진적 전환
+
+### Step 3: graph-tool-call 추가 기능
+- `enable_embedding()` — 의미 검색 (키워드 미스 해결)
+- `enhanced`/`full` 검색 모드 — 복합 쿼리 분해
 
 ---
 

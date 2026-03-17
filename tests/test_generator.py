@@ -11,8 +11,11 @@ def _make_generator():
     return ToolGenerator(client, registry, tools_dir="tools")
 
 
-def test_extract_code_block():
-    """마크다운 코드 블록 추출."""
+# ── _extract_code_and_test ──
+
+
+def test_extract_code_and_test_python_block():
+    """python 코드 블록 추출."""
     gen = _make_generator()
 
     text = '''여기 코드입니다:
@@ -20,23 +23,63 @@ def test_extract_code_block():
 print("hello")
 ```
 끝.'''
-    assert gen._extract_code_block(text) == 'print("hello")'
+    code, test = gen._extract_code_and_test(text)
+    assert code == 'print("hello")'
+    assert test == ""
 
 
-def test_extract_code_block_no_language():
+def test_extract_code_and_test_no_language():
     """언어 표시 없는 코드 블록."""
     gen = _make_generator()
 
     text = '''```
 x = 1 + 2
 ```'''
-    assert gen._extract_code_block(text) == "x = 1 + 2"
+    code, test = gen._extract_code_and_test(text)
+    assert code == "x = 1 + 2"
+    assert test == ""
 
 
-def test_extract_code_block_plain_text():
+def test_extract_code_and_test_plain_text():
     """코드 블록이 없으면 전체 텍스트 반환."""
     gen = _make_generator()
-    assert gen._extract_code_block("just plain code") == "just plain code"
+    code, test = gen._extract_code_and_test("just plain code")
+    assert code == "just plain code"
+    assert test == ""
+
+
+def test_extract_code_and_test_with_test_block():
+    """python + test 블록 분리 추출."""
+    gen = _make_generator()
+
+    text = '''도구 코드:
+```python
+from src.tools.decorator import tool
+
+@tool(name="add", description="더하기", parameters={})
+async def add(a: float, b: float) -> dict:
+    return {"sum": a + b}
+```
+
+테스트 코드:
+```test
+import asyncio
+
+async def test():
+    result = await add(1, 2)
+    assert result["sum"] == 3
+    print("ALL_TESTS_PASSED")
+
+asyncio.run(test())
+```'''
+    code, test = gen._extract_code_and_test(text)
+    assert "@tool" in code
+    assert "async def add" in code
+    assert "ALL_TESTS_PASSED" in test
+    assert "asyncio.run" in test
+
+
+# ── _extract_tool_name ──
 
 
 def test_extract_tool_name():

@@ -17,6 +17,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from graph_tool_call import ToolGraph, ToolSchema, RetrievalResult
+from graph_tool_call.assist.validator import validate_tool_call
 
 from src.tools.decorator import ToolSpec
 from src.tools.registry import ToolRegistry
@@ -93,6 +94,7 @@ class GraphToolManager:
 
         @tool 데코레이터로 등록된 도구를 graph-tool-call의
         ToolSchema로 변환하여 그래프에 추가한다.
+        등록 후 auto_organize()로 자동 분류한다.
 
         Returns:
             등록된 도구 수.
@@ -114,7 +116,21 @@ class GraphToolManager:
                 tools_added,
                 self.tool_count,
             )
+            # 자동 분류: 태그/도메인/카테고리 생성 + 의존성 관계 구축
+            self._auto_organize()
+
         return tools_added
+
+    def _auto_organize(self) -> None:
+        """도구 자동 분류 — 태그 기반 카테고리/도메인 + 의존성 관계 구축."""
+        try:
+            self._tool_graph.auto_organize()
+            logger.info(
+                "graph-tool-call: auto_organize 완료 — 도구 %d개 분류됨",
+                self.tool_count,
+            )
+        except Exception as e:
+            logger.warning("graph-tool-call: auto_organize 실패 (무시): %s", e)
 
     # ─── Ingest: OpenAPI ───
 
@@ -498,20 +514,93 @@ class GraphToolManager:
             is_async=True,
         )
 
+    # ─── 도구 호출 검증 ───
+
+    def validate_call(self, tool_name: str, arguments: dict) -> dict[str, Any]:
+        """LLM이 요청한 도구 호출을 검증하고 자동 교정.
+
+        - 도구 이름 오타 → fuzzy matching으로 올바른 이름 제안
+        - 파라미터 누락/초과 → 경고
+        - destructive 도구 → 경고 플래그
+
+        Returns:
+            {"valid": bool, "corrected_name": str|None, "warnings": list, "errors": list}
+        """
+        tool_call = {"name": tool_name, "arguments": arguments}
+        tools_list = list(self._tool_graph.tools.values())
+
+        try:
+            result = validate_tool_call(tool_call, tools_list)
+            return {
+                "valid": result.valid,
+                "corrected_name": result.corrected_name if hasattr(result, "corrected_name") else None,
+                "corrected_arguments": result.corrected_arguments if hasattr(result, "corrected_arguments") else None,
+                "warnings": [str(w) for w in result.warnings] if hasattr(result, "warnings") else [],
+                "errors": [str(e) for e in result.errors] if hasattr(result, "errors") else [],
+            }
+        except Exception as e:
+            logger.warning("validate_tool_call 실패: %s", e)
+            return {"valid": True, "corrected_name": None, "warnings": [], "errors": []}
+
     # ─── 분석/관리 ───
+
+    def analyze(self) -> dict[str, Any]:
+        """그래프 품질 분석 리포트.
+
+        중복 도구, 충돌 도구, 고아 도구, 카테고리 분포 등을 반환.
+        """
+        try:
+            report = self._tool_graph.analyze()
+            return {
+                "tool_count": report.tool_count,
+                "node_count": report.node_count,
+                "edge_count": report.edge_count,
+                "duplicate_count": report.duplicate_count,
+                "conflict_count": report.conflict_count,
+                "orphan_tool_count": report.orphan_tool_count,
+                "category_count": report.category_count,
+                "duplicates": [
+                    {"tool_a": d.tool_a, "tool_b": d.tool_b, "score": d.score, "stage": d.stage}
+                    for d in (report.duplicates or [])
+                ],
+                "categories": report.categories if hasattr(report, "categories") else [],
+            }
+        except Exception as e:
+            logger.warning("graph analyze 실패: %s", e)
+            return {"error": str(e)}
+
+    def find_duplicates(self, threshold: float = 0.85) -> list[dict]:
+        """중복 도구 탐지.
+
+        5단계 파이프라인: 해시 → 퍼지이름 → 파라미터Jaccard → 임베딩 → 시맨틱
+        """
+        try:
+            pairs = self._tool_graph.find_duplicates(threshold=threshold)
+            return [
+                {"tool_a": p.tool_a, "tool_b": p.tool_b, "score": p.score, "stage": p.stage}
+                for p in pairs
+            ]
+        except Exception as e:
+            logger.warning("find_duplicates 실패: %s", e)
+            return []
 
     def get_stats(self) -> dict[str, Any]:
         """그래프 통계 반환."""
         tools = self._tool_graph.tools
         domains: set[str] = set()
+        categories: set[str] = set()
         for ts in tools.values():
             if ts.domain:
                 domains.add(ts.domain)
+            if hasattr(ts, "tags") and ts.tags:
+                categories.update(ts.tags)
 
         return {
             "total_tools": len(tools),
             "domains": sorted(domains),
             "domain_count": len(domains),
+            "categories": sorted(categories),
+            "category_count": len(categories),
             "spec_map_count": len(self._spec_map),
             "call_history_length": len(self._call_history),
             "search_mode": self.config.search_mode,

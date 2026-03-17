@@ -37,6 +37,7 @@ async def lifespan(app: FastAPI):
     from src.tools.builtin import xgen_utils  # noqa: F401
     from src.tools.builtin import agent_mgmt  # noqa: F401 — 에이전트 관리 도구
     from src.sandbox import runner  # noqa: F401 — execute_code, execute_code_with_test
+    from src.tools import generator  # noqa: F401 — create_tool
     from src.tools.decorator import get_registered_tools
 
     for spec in get_registered_tools():
@@ -69,12 +70,38 @@ async def lifespan(app: FastAPI):
     from src.tools.builtin.agent_mgmt import set_tool_registry
     set_tool_registry(tool_registry)
 
+    # ToolGenerator 초기화 (LLM API 설정이 있을 때)
+    model_base_url = os.environ.get("MODEL_BASE_URL", "") or os.environ.get("MODEL_API_BASE_URL", "")
+    model_api_key = os.environ.get("MODEL_API_KEY", "")
+    if model_base_url:
+        from src.core.model_client import ModelClient
+        from src.tools.generator import ToolGenerator, set_tool_generator
+
+        gen_client = ModelClient(
+            base_url=model_base_url,
+            api_key=model_api_key,
+            model=os.environ.get("MODEL_NAME", "gpt-4o-mini"),
+        )
+        generator = ToolGenerator(
+            model_client=gen_client,
+            tool_registry=tool_registry,
+        )
+        set_tool_generator(generator)
+        app.state.tool_generator = generator
+        logging.getLogger(__name__).info("ToolGenerator 초기화 완료")
+
+    # GraphToolManager 초기화 — 도구 그래프 빌드 + 자동 분류
+    from src.tools.graph_tool import GraphToolManager, GraphToolConfig
+    graph_tool_manager = GraphToolManager(GraphToolConfig())
+    graph_tool_manager.ingest_from_registry(tool_registry)
+
     # 앱 state에 등록
     app.state.tool_registry = tool_registry
     app.state.trace_collector = trace_collector
     app.state.agent_store = agent_store
     app.state.state_store = state_store
     app.state.history_store = history_store
+    app.state.graph_tool_manager = graph_tool_manager
 
     yield
 

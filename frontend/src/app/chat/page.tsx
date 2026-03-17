@@ -7,6 +7,14 @@ import type { Message, SSEEvent, AgentSummary, HistoryEntry } from '../_common/t
 import { streamChat, listAgents, listHistory } from '../_common/api/agentAPI';
 import ChatMessage from '../_common/components/ChatMessage';
 import { formatRelativeTime, formatDuration } from '../_common/utils/formatTime';
+import {
+  saveSessionId,
+  loadSessionId,
+  saveMessages,
+  loadMessages,
+  historyToMessages,
+} from '../_common/utils/chatSession';
+import { listHistory as fetchSessionHistory } from '../_common/api/agentAPI';
 import styles from './chat.module.scss';
 import {
   FiSend,
@@ -30,6 +38,7 @@ const QUICK_PROMPTS = [
 
 export default function ChatIndex() {
   const router = useRouter();
+  const AGENT_KEY = 'default';
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -42,13 +51,42 @@ export default function ChatIndex() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
-  // Load agents + history
+  // Load agents + recent history for welcome screen
   useEffect(() => {
     listAgents().then(setAgents).catch(() => {});
     listHistory(undefined, undefined, 20)
       .then((res) => setHistory(res.history ?? []))
       .catch(() => {});
   }, []);
+
+  // Restore session from sessionStorage → fallback to backend history
+  useEffect(() => {
+    const cached = loadMessages(AGENT_KEY);
+    const sid = loadSessionId(AGENT_KEY);
+    if (cached.length > 0) {
+      setMessages(cached);
+      if (sid) setSessionId(sid);
+      return;
+    }
+    if (sid) {
+      setSessionId(sid);
+      fetchSessionHistory(undefined, sid, 100)
+        .then((res) => {
+          const restored = historyToMessages(res.history ?? []);
+          if (restored.length > 0) setMessages(restored);
+        })
+        .catch(() => {});
+    }
+  }, []);
+
+  // Persist messages + sessionId to sessionStorage on change
+  useEffect(() => {
+    if (messages.length > 0) saveMessages(AGENT_KEY, messages);
+  }, [messages]);
+
+  useEffect(() => {
+    if (sessionId) saveSessionId(AGENT_KEY, sessionId);
+  }, [sessionId]);
 
   // Auto-scroll
   useEffect(() => {

@@ -191,7 +191,8 @@ def test_manager_init():
     """GraphToolManager 기본 초기화."""
     manager = GraphToolManager()
     assert manager.tool_count == 0
-    assert not manager.should_use_search
+    # threshold=0이므로 도구 0개여도 항상 검색 모드 활성
+    assert manager.should_use_search
     assert manager.config.max_results == 10
 
 
@@ -344,10 +345,10 @@ def test_ingest_mcp_tools(manager):
 # ─── auto_threshold ───
 
 
-def test_should_use_search_below_threshold(manager_with_tools):
-    """도구 수가 임계값 미만이면 검색 모드 비활성."""
-    assert manager_with_tools.tool_count < GRAPH_SEARCH_THRESHOLD
-    assert not manager_with_tools.should_use_search
+def test_should_use_search_always_active(manager_with_tools):
+    """threshold=0이므로 도구 수와 무관하게 항상 검색 모드 활성."""
+    assert GRAPH_SEARCH_THRESHOLD == 0
+    assert manager_with_tools.should_use_search
 
 
 def test_should_use_search_above_threshold(sample_openai_tools):

@@ -1,18 +1,19 @@
-// SSE 스트리밍은 Next.js rewrite로 프록시하면 버퍼링됨.
-// 브라우저에서 직접 백엔드로 요청해야 함.
-function resolveBackendUrl(): string {
-  // 서버 사이드에서는 컨테이너 내부 URL
-  if (typeof window === 'undefined') {
-    return process.env.BACKEND_URL || 'http://xgen-agent:8000';
-  }
-  // 클라이언트(브라우저)에서는 호스트 기준으로 8010 포트
-  return process.env.NEXT_PUBLIC_BACKEND_URL || `${window.location.protocol}//${window.location.hostname}:8010`;
-}
+// 일반 REST API → Next.js 프록시(같은 origin) — CORS 문제 없음
+// SSE 스트리밍 → 백엔드 직접 연결 — Next.js rewrite 버퍼링 방지
 
-export const BASE_URL = resolveBackendUrl();
+/** REST API — 같은 origin 프록시 경유 */
+export const BASE_URL = typeof window === 'undefined'
+  ? (process.env.BACKEND_URL || 'http://xgen-agent:8000')
+  : '';
+
+/** SSE 스트리밍 전용 — 백엔드 직접 */
+export const STREAM_URL = typeof window === 'undefined'
+  ? (process.env.BACKEND_URL || 'http://xgen-agent:8000')
+  : `${window.location.protocol}//${window.location.hostname}:8010`;
 
 export const API_CONFIG = {
   BASE_URL,
+  STREAM_URL,
   TIMEOUT: 30000,
   DEFAULT_HEADERS: {
     'Content-Type': 'application/json',
@@ -20,8 +21,8 @@ export const API_CONFIG = {
 };
 
 export const APP_CONFIG = {
-  LANGUAGE: process.env.NEXT_PUBLIC_LANGUAGE || 'ko',
+  LANGUAGE: 'ko',
   DEBUG_MODE: process.env.NODE_ENV === 'development',
-  SHOW_THINK_BLOCK: process.env.NEXT_PUBLIC_SHOW_THINK_BLOCK === 'true',
-  SHOW_TOOL_OUTPUT: process.env.NEXT_PUBLIC_SHOW_TOOL_OUTPUT === 'true',
+  SHOW_THINK_BLOCK: false,
+  SHOW_TOOL_OUTPUT: false,
 };

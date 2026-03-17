@@ -165,7 +165,6 @@ services:
       - xgen-agent
     environment:
       BACKEND_URL: "http://xgen-agent:8000"
-      NEXT_PUBLIC_BACKEND_URL: "http://localhost:8010"
     ports:
       - "3000:3000"
     volumes:

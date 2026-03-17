@@ -25,6 +25,18 @@ const nextConfig: NextConfig = {
         destination: `${backendUrl}/api/mcp/:path*`,
       },
       {
+        source: '/api/approval/:path*',
+        destination: `${backendUrl}/api/approval/:path*`,
+      },
+      {
+        source: '/api/sessions/:path*',
+        destination: `${backendUrl}/api/sessions/:path*`,
+      },
+      {
+        source: '/api/history',
+        destination: `${backendUrl}/api/history`,
+      },
+      {
         source: '/health',
         destination: `${backendUrl}/health`,
       },
